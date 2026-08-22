@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:spendra/core/providers/providers.dart';
@@ -17,29 +16,14 @@ import 'package:spendra/features/category/domain/entities/category.dart';
 import 'package:spendra/features/category/presentation/widgets/category_chip.dart';
 import 'package:spendra/features/expense/domain/entities/expense.dart';
 
-class DashboardScreen extends ConsumerStatefulWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
   @override
-  ConsumerState<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends ConsumerState<DashboardScreen> {
-  TransactionType? _recentFilter;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+  Widget build(BuildContext context, WidgetRef ref) {
     final summary = ref.watch(dashboardSummaryProvider);
     final currency = ref.watch(currencyCodeProvider);
     final symbol = CurrencyFormatter.symbol(currency);
-
-    final filteredRecent = _recentFilter == null
-        ? summary.recentTransactions
-        : summary.recentTransactions
-            .where((e) => e.type == _recentFilter)
-            .toList();
 
     return Scaffold(
       body: CustomScrollView(
@@ -85,7 +69,7 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
               ),
             ),
 
-          // ── Recent Section: Empty State OR Filtered Activity ──────────
+          // ── Recent Section: Empty State OR Recent Activity ──────────
           if (summary.recentTransactions.isEmpty)
             const SliverFillRemaining(
               hasScrollBody: false,
@@ -107,98 +91,24 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                   AppSpacing.base,
                   AppSpacing.xl,
                   AppSpacing.base,
-                  0,
+                  AppSpacing.sm,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SectionHeader(
-                      title: _recentFilter == TransactionType.income
-                          ? 'Your Income'
-                          : (_recentFilter == TransactionType.expense
-                              ? 'Recent Expenses'
-                              : 'Recent Activity'),
-                      actionLabel: 'See All',
-                      onAction: () => context.go(RouteNames.transactions),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    // Segmented Filter: All | Expenses | Your Income
-                    Container(
-                      padding: const EdgeInsets.all(3),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? AppColors.darkSurface
-                            : AppColors.lightSurface,
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          _buildFilterTab(
-                            label: 'All',
-                            isSelected: _recentFilter == null,
-                            activeColor: isDark
-                                ? Colors.white.withValues(alpha: 0.15)
-                                : Colors.black.withValues(alpha: 0.08),
-                            textColor: isDark
-                                ? Colors.white
-                                : AppColors.lightTextPrimary,
-                            onTap: () => setState(() => _recentFilter = null),
-                          ),
-                          const SizedBox(width: 4),
-                          _buildFilterTab(
-                            label: 'Expenses',
-                            isSelected:
-                                _recentFilter == TransactionType.expense,
-                            activeColor: AppColors.coral.withValues(alpha: 0.18),
-                            textColor: AppColors.coral,
-                            onTap: () => setState(
-                                () => _recentFilter = TransactionType.expense),
-                          ),
-                          const SizedBox(width: 4),
-                          _buildFilterTab(
-                            label: 'Your Income',
-                            isSelected:
-                                _recentFilter == TransactionType.income,
-                            activeColor: AppColors.teal.withValues(alpha: 0.18),
-                            textColor: AppColors.teal,
-                            onTap: () => setState(
-                                () => _recentFilter = TransactionType.income),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                child: SectionHeader(
+                  title: 'Recent Activity',
+                  actionLabel: 'See All',
+                  onAction: () => context.go(RouteNames.transactions),
                 ),
               ),
             ),
-
-            if (filteredRecent.isEmpty)
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: AppSpacing.base),
-                  child: EmptyState(
-                    icon: _recentFilter == TransactionType.income
-                        ? Icons.trending_up
-                        : Icons.receipt_long_outlined,
-                    title: _recentFilter == TransactionType.income
-                        ? 'No income recorded yet'
-                        : 'No expenses recorded yet',
-                    subtitle: _recentFilter == TransactionType.income
-                        ? 'Add your salary, freelance, or investment income.'
-                        : 'No expenses recorded in this period.',
-                  ),
-                ),
-              )
-            else
-              SliverList(
-                delegate: SliverChildBuilderDelegate(
-                  (context, i) {
-                    final expense = filteredRecent[i];
-                    return _RecentTile(expense: expense, symbol: symbol);
-                  },
-                  childCount: filteredRecent.length,
-                ),
+            SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (context, i) {
+                  final expense = summary.recentTransactions[i];
+                  return _RecentTile(expense: expense, symbol: symbol);
+                },
+                childCount: summary.recentTransactions.length,
               ),
+            ),
           ],
 
           // Bottom padding for floating nav bar
@@ -206,45 +116,6 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
             child: SizedBox(height: 120),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFilterTab({
-    required String label,
-    required bool isSelected,
-    required Color activeColor,
-    required Color textColor,
-    required VoidCallback onTap,
-  }) {
-    return Expanded(
-      child: GestureDetector(
-        onTap: () {
-          HapticFeedback.selectionClick();
-          onTap();
-        },
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 8),
-          decoration: BoxDecoration(
-            color: isSelected ? activeColor : Colors.transparent,
-            borderRadius: BorderRadius.circular(11),
-          ),
-          child: Center(
-            child: Text(
-              label,
-              style: TextStyle(
-                color: isSelected
-                    ? textColor
-                    : (Theme.of(context).brightness == Brightness.dark
-                        ? AppColors.darkTextSecondary
-                        : AppColors.lightTextSecondary),
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                fontSize: 12.5,
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }
@@ -282,13 +153,13 @@ class _BalanceCardState extends State<_BalanceCard> {
     final formattedBalance = CurrencyFormatter.formatAmount(widget.balance.abs());
     final displayBalance = _hideBalance
         ? '••••••'
-        : '${widget.symbol}$formattedBalance';
+        : '${widget.balance < 0 ? '-' : ''}${widget.symbol} $formattedBalance';
 
     final formattedIncome = CurrencyFormatter.formatAmount(widget.income);
-    final displayIncome = _hideBalance ? '••••••' : '+${widget.symbol}$formattedIncome';
+    final displayIncome = _hideBalance ? '••••••' : '+${widget.symbol} $formattedIncome';
 
     final formattedSpent = CurrencyFormatter.formatAmount(widget.expense);
-    final displaySpent = _hideBalance ? '••••••' : '-${widget.symbol}$formattedSpent';
+    final displaySpent = _hideBalance ? '••••••' : '-${widget.symbol} $formattedSpent';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
@@ -639,7 +510,7 @@ class _BudgetCard extends StatelessWidget {
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            'You have $symbol${CurrencyFormatter.formatAmount(remaining.clamp(0, double.infinity))} left for $daysLeft day${daysLeft == 1 ? '' : 's'}.',
+            'You have $symbol ${CurrencyFormatter.formatAmount(remaining.clamp(0, double.infinity))} left for $daysLeft day${daysLeft == 1 ? '' : 's'}.',
             style: theme.textTheme.bodyMedium?.copyWith(
               color: textSecondary,
             ),

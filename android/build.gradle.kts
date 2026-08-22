@@ -24,7 +24,7 @@ subprojects {
         afterEvaluate {
             val android = extensions.findByType(com.android.build.gradle.BaseExtension::class.java)
             if (android != null) {
-                android.compileSdkVersion(34)
+                android.compileSdkVersion(36)
                 if (android.namespace == null) {
                     android.namespace = "dev.isar.${name.replace("-", "_")}"
                 }

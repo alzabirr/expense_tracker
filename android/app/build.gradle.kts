@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.example.spendra"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
@@ -23,10 +23,6 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-
-        ndk {
-            abiFilters.addAll(listOf("armeabi-v7a", "arm64-v8a", "x86_64"))
-        }
     }
 
     buildTypes {

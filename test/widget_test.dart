@@ -20,7 +20,7 @@ void main() {
         ),
       );
 
-      expect(find.text('-\$45.50'), findsOneWidget);
+      expect(find.text('-\$ 45.50'), findsOneWidget);
     });
 
     testWidgets('AmountLabel displays positive sign for income', (tester) async {
@@ -36,7 +36,7 @@ void main() {
         ),
       );
 
-      expect(find.text('+\$2,500.00'), findsOneWidget);
+      expect(find.text('+\$ 2,500.00'), findsOneWidget);
     });
 
     testWidgets('EmptyState renders title and subtitle', (tester) async {

@@ -10,7 +10,10 @@ abstract final class RouteNames {
   static const String categoryManagement = '/categories';
   static const String budgetScreen = '/budget';
   static const String settings = '/settings';
+  static const String userProfile = '/user-profile';
   static const String onboarding = '/onboarding';
+  static const String login = '/login';
+  static const String signup = '/signup';
 
   static String editExpensePath(String id) => '/edit-expense/$id';
   static String transactionDetailPath(String id) => '/transaction/$id';

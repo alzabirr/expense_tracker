@@ -157,7 +157,7 @@ class AmountLabel extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       child: Text(
-        '$sign$symbol${CurrencyFormatter.formatAmount(amount)}',
+        '$sign$symbol ${CurrencyFormatter.formatAmount(amount)}',
         style: effective,
       ),
     );

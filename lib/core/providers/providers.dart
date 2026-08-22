@@ -1,4 +1,5 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:spendra/core/database/isar_provider.dart';
 import 'package:spendra/features/category/data/repositories/category_repository_impl.dart';
 import 'package:spendra/features/category/domain/entities/category.dart';
@@ -15,18 +16,56 @@ import 'package:spendra/features/settings/domain/repositories/settings_repositor
 import 'package:spendra/core/constants/app_constants.dart';
 import 'package:spendra/core/utils/date_utils.dart';
 
+import 'package:spendra/core/sync/supabase_sync_service.dart';
+import 'package:spendra/features/auth/domain/repositories/auth_repository.dart';
+import 'package:spendra/features/auth/data/repositories/auth_repository_impl.dart';
+import 'package:spendra/features/auth/presentation/controllers/auth_controller.dart';
+import 'package:spendra/features/auth/domain/entities/app_user.dart';
+
+// ── Supabase & Sync Providers ────────────────────────────────────────────────
+
+final supabaseClientProvider = Provider<SupabaseClient>((ref) {
+  return Supabase.instance.client;
+});
+
+final supabaseSyncServiceProvider = Provider<SupabaseSyncService>((ref) {
+  return SupabaseSyncService(ref.watch(supabaseClientProvider));
+});
+
+// ── Auth Providers ───────────────────────────────────────────────────────────
+
+final authRepositoryProvider = Provider<AuthRepository>((ref) {
+  return AuthRepositoryImpl(ref.watch(supabaseClientProvider));
+});
+
+final authStateStreamProvider = StreamProvider<AppUser?>((ref) {
+  return ref.watch(authRepositoryProvider).authStateChanges();
+});
+
+final authControllerProvider =
+    StateNotifierProvider<AuthController, AppAuthState>((ref) {
+  final authRepo = ref.watch(authRepositoryProvider);
+  return AuthController(authRepo, ref);
+});
+
 // ── Repository Providers ─────────────────────────────────────────────────────
 
 final categoryRepositoryProvider = Provider<CategoryRepository>((ref) {
-  return CategoryRepositoryImpl(ref.watch(isarProvider));
+  final isar = ref.watch(isarProvider);
+  final syncService = ref.watch(supabaseSyncServiceProvider);
+  return CategoryRepositoryImpl(isar, syncService);
 });
 
 final expenseRepositoryProvider = Provider<ExpenseRepository>((ref) {
-  return ExpenseRepositoryImpl(ref.watch(isarProvider));
+  final isar = ref.watch(isarProvider);
+  final syncService = ref.watch(supabaseSyncServiceProvider);
+  return ExpenseRepositoryImpl(isar, syncService);
 });
 
 final budgetRepositoryProvider = Provider<BudgetRepository>((ref) {
-  return BudgetRepositoryImpl(ref.watch(isarProvider));
+  final isar = ref.watch(isarProvider);
+  final syncService = ref.watch(supabaseSyncServiceProvider);
+  return BudgetRepositoryImpl(isar, syncService);
 });
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {

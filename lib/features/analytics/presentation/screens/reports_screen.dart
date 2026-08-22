@@ -105,7 +105,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                               ),
                               const SizedBox(height: AppSpacing.xs),
                               Text(
-                                '$symbol${CurrencyFormatter.formatAmount(totalSpent)}',
+                                '$symbol ${CurrencyFormatter.formatAmount(totalSpent)}',
                                 style: theme.textTheme.displayMedium?.copyWith(
                                   color: AppColors.coral,
                                 ),
@@ -123,7 +123,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                                 ),
                               ),
                               Text(
-                                '$symbol${CurrencyFormatter.formatAmount(totalIncome)}',
+                                '$symbol ${CurrencyFormatter.formatAmount(totalIncome)}',
                                 style: theme.textTheme.titleMedium?.copyWith(
                                   color: AppColors.teal,
                                 ),
@@ -416,7 +416,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                               crossAxisAlignment: CrossAxisAlignment.end,
                               children: [
                                 Text(
-                                  '$symbol${CurrencyFormatter.formatAmount(item.amount)}',
+                                  '$symbol ${CurrencyFormatter.formatAmount(item.amount)}',
                                   style: theme.textTheme.titleMedium
                                       ?.copyWith(color: AppColors.coral),
                                 ),

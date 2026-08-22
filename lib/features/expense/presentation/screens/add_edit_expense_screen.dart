@@ -203,7 +203,7 @@ class _AddEditExpenseScreenState extends ConsumerState<AddEditExpenseScreen> {
               ],
             ),
             content: Text(
-              'Your expense amount exceeds your available balance ($symbol$formattedAvail). You cannot add this expense.',
+              'Your expense amount exceeds your available balance ($symbol $formattedAvail). You cannot add this expense.',
               style: TextStyle(
                 color: isDark
                     ? AppColors.darkTextSecondary

@@ -143,12 +143,12 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     Row(
                       children: [
                         Text(
-                          '$symbol${CurrencyFormatter.formatAmount(spent)}',
+                          '$symbol ${CurrencyFormatter.formatAmount(spent)}',
                           style: theme.textTheme.headlineMedium
                               ?.copyWith(color: AppColors.coral),
                         ),
                         Text(
-                          ' / $symbol${CurrencyFormatter.formatAmount(budgetAmount)}',
+                          ' / $symbol ${CurrencyFormatter.formatAmount(budgetAmount)}',
                           style: theme.textTheme.headlineMedium
                               ?.copyWith(color: textSecondary),
                         ),
@@ -176,7 +176,7 @@ class _BudgetScreenState extends ConsumerState<BudgetScreen> {
                     Text(
                       progress >= 1.0
                           ? '⚠️ You\'ve exceeded your budget!'
-                          : 'Remaining: $symbol${CurrencyFormatter.formatAmount(budgetAmount - spent)} for ${AppDateUtils.endOfMonth.difference(DateTime.now()).inDays + 1} days',
+                          : 'Remaining: $symbol ${CurrencyFormatter.formatAmount(budgetAmount - spent)} for ${AppDateUtils.endOfMonth.difference(DateTime.now()).inDays + 1} days',
                       style: theme.textTheme.bodySmall?.copyWith(
                         color: progress >= 1.0
                             ? AppColors.danger

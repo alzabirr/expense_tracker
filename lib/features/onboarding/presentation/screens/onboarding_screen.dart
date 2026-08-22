@@ -93,7 +93,12 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
 
     if (!mounted) return;
-    context.go(RouteNames.dashboard);
+    final currentUser = ref.read(supabaseClientProvider).auth.currentUser;
+    if (currentUser == null) {
+      context.go(RouteNames.login);
+    } else {
+      context.go(RouteNames.dashboard);
+    }
   }
 
   void _nextPage() {
@@ -199,9 +204,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         children: [
           Expanded(
             child: Center(
-              child: SizedBox(
-                width: double.infinity,
-                height: 360,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                 child: Image.asset(
                   'assets/images/track_expenses.png',
                   fit: BoxFit.contain,
@@ -322,7 +326,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       ),
                       const SizedBox(height: 2),
                       Text(
-                        '${selectedItem['code']} • Preview: ${selectedItem['symbol']} 2,500.00',
+                        '${selectedItem['code']} • ${selectedItem['symbol']}',
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,

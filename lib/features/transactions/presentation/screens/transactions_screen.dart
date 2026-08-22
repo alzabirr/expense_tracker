@@ -232,6 +232,59 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
               ),
             ),
 
+            // ── Segmented Type Filter: All | Expenses | Your Income ────
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.base,
+                AppSpacing.md,
+                AppSpacing.base,
+                0,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? AppColors.darkSurface
+                      : AppColors.lightSurface,
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    _buildTypeTab(
+                      label: 'All',
+                      isSelected: _filter.type == null,
+                      activeColor: isDark
+                          ? Colors.white.withValues(alpha: 0.15)
+                          : Colors.black.withValues(alpha: 0.08),
+                      textColor: isDark
+                          ? Colors.white
+                          : AppColors.lightTextPrimary,
+                      onTap: () => setState(() =>
+                          _filter = _filter.copyWith(clearType: true)),
+                    ),
+                    const SizedBox(width: 4),
+                    _buildTypeTab(
+                      label: 'Expenses',
+                      isSelected: _filter.type == TransactionType.expense,
+                      activeColor: AppColors.coral.withValues(alpha: 0.18),
+                      textColor: AppColors.coral,
+                      onTap: () => setState(() =>
+                          _filter = _filter.copyWith(type: TransactionType.expense)),
+                    ),
+                    const SizedBox(width: 4),
+                    _buildTypeTab(
+                      label: 'Your Income',
+                      isSelected: _filter.type == TransactionType.income,
+                      activeColor: AppColors.teal.withValues(alpha: 0.18),
+                      textColor: AppColors.teal,
+                      onTap: () => setState(() =>
+                          _filter = _filter.copyWith(type: TransactionType.income)),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
             // ── Period chips ────────────────────────────────────────
             SizedBox(
               height: 48,
@@ -337,6 +390,46 @@ class _TransactionsScreenState extends ConsumerState<TransactionsScreen> {
                     ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTypeTab({
+    required String label,
+    required bool isSelected,
+    required Color activeColor,
+    required Color textColor,
+    required VoidCallback onTap,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.selectionClick();
+          onTap();
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 150),
+          padding: const EdgeInsets.symmetric(vertical: 8),
+          decoration: BoxDecoration(
+            color: isSelected ? activeColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(11),
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isSelected
+                    ? textColor
+                    : (isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary),
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                fontSize: 12.5,
+              ),
+            ),
+          ),
         ),
       ),
     );
@@ -852,9 +945,11 @@ class _FilterSheetState extends State<_FilterSheet> {
             ? _allComprehensiveCategories
                 .where((c) => c.id.startsWith('cat_income'))
                 .toList()
-            : _allComprehensiveCategories
-                .where((c) => !c.id.startsWith('cat_income'))
-                .toList());
+            : (_selectedType == TransactionType.expense
+                ? _allComprehensiveCategories
+                    .where((c) => !c.id.startsWith('cat_income'))
+                    .toList()
+                : _allComprehensiveCategories));
 
     return Container(
       decoration: BoxDecoration(
@@ -890,7 +985,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Filter Transactions',
+                    'Filter by Category',
                     style: theme.textTheme.titleLarge
                         ?.copyWith(fontWeight: FontWeight.bold),
                   ),
@@ -901,7 +996,7 @@ class _FilterSheetState extends State<_FilterSheet> {
                         _selectedCategory = null;
                       }),
                       child: const Text(
-                        'Reset All',
+                        'Reset',
                         style: TextStyle(
                           color: AppColors.coral,
                           fontWeight: FontWeight.w600,
@@ -913,9 +1008,9 @@ class _FilterSheetState extends State<_FilterSheet> {
               ),
               const SizedBox(height: AppSpacing.base),
 
-              // ── Type Toggle (All, Expense, Income) ───────────────
+              // ── Type Toggle (All, Expenses, Your Income) ───────────
               Text(
-                'TRANSACTION TYPE',
+                'TYPE',
                 style: theme.textTheme.labelSmall?.copyWith(
                   color: textSecondary,
                   letterSpacing: 0.8,
@@ -923,35 +1018,54 @@ class _FilterSheetState extends State<_FilterSheet> {
                 ),
               ),
               const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  _typeChip(
-                    label: 'All',
-                    isSelected: _selectedType == null,
-                    activeColor: AppColors.coral,
-                    onTap: () => setState(() => _selectedType = null),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  _typeChip(
-                    label: 'Expense',
-                    isSelected: _selectedType == TransactionType.expense,
-                    activeColor: AppColors.coral,
-                    onTap: () => setState(() {
-                      _selectedType = TransactionType.expense;
-                      _selectedCategory = null;
-                    }),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  _typeChip(
-                    label: 'Income',
-                    isSelected: _selectedType == TransactionType.income,
-                    activeColor: AppColors.teal,
-                    onTap: () => setState(() {
-                      _selectedType = TransactionType.income;
-                      _selectedCategory = null;
-                    }),
-                  ),
-                ],
+              Container(
+                padding: const EdgeInsets.all(3),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: Row(
+                  children: [
+                    _typeTab(
+                      label: 'All',
+                      isSelected: _selectedType == null,
+                      activeColor: isDark
+                          ? Colors.white.withValues(alpha: 0.15)
+                          : Colors.black.withValues(alpha: 0.08),
+                      textColor: isDark
+                          ? Colors.white
+                          : AppColors.lightTextPrimary,
+                      onTap: () => setState(() {
+                        _selectedType = null;
+                        _selectedCategory = null;
+                      }),
+                    ),
+                    const SizedBox(width: 4),
+                    _typeTab(
+                      label: 'Expenses',
+                      isSelected: _selectedType == TransactionType.expense,
+                      activeColor: AppColors.coral.withValues(alpha: 0.18),
+                      textColor: AppColors.coral,
+                      onTap: () => setState(() {
+                        _selectedType = TransactionType.expense;
+                        _selectedCategory = null;
+                      }),
+                    ),
+                    const SizedBox(width: 4),
+                    _typeTab(
+                      label: 'Your Income',
+                      isSelected: _selectedType == TransactionType.income,
+                      activeColor: AppColors.teal.withValues(alpha: 0.18),
+                      textColor: AppColors.teal,
+                      onTap: () => setState(() {
+                        _selectedType = TransactionType.income;
+                        _selectedCategory = null;
+                      }),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: AppSpacing.base),
 
@@ -967,7 +1081,7 @@ class _FilterSheetState extends State<_FilterSheet> {
               const SizedBox(height: AppSpacing.sm),
               ConstrainedBox(
                 constraints: BoxConstraints(
-                  maxHeight: MediaQuery.of(context).size.height * 0.35,
+                  maxHeight: MediaQuery.of(context).size.height * 0.38,
                 ),
                 child: SingleChildScrollView(
                   physics: const BouncingScrollPhysics(),
@@ -1051,10 +1165,11 @@ class _FilterSheetState extends State<_FilterSheet> {
     );
   }
 
-  Widget _typeChip({
+  Widget _typeTab({
     required String label,
     required bool isSelected,
     required Color activeColor,
+    required Color textColor,
     required VoidCallback onTap,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -1066,32 +1181,22 @@ class _FilterSheetState extends State<_FilterSheet> {
         },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 10),
+          padding: const EdgeInsets.symmetric(vertical: 8),
           decoration: BoxDecoration(
-            color: isSelected
-                ? activeColor.withValues(alpha: 0.16)
-                : (isDark
-                    ? Colors.white.withValues(alpha: 0.05)
-                    : Colors.black.withValues(alpha: 0.04)),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isSelected
-                  ? activeColor
-                  : (isDark ? AppColors.darkDivider : AppColors.lightDivider),
-              width: isSelected ? 1.5 : 1.0,
-            ),
+            color: isSelected ? activeColor : Colors.transparent,
+            borderRadius: BorderRadius.circular(11),
           ),
           child: Center(
             child: Text(
               label,
               style: TextStyle(
                 color: isSelected
-                    ? activeColor
+                    ? textColor
                     : (isDark
                         ? AppColors.darkTextSecondary
                         : AppColors.lightTextSecondary),
-                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                fontSize: 13,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                fontSize: 12.5,
               ),
             ),
           ),

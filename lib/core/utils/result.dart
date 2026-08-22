@@ -58,6 +58,10 @@ final class NotFoundFailure extends AppFailure {
   const NotFoundFailure(super.message);
 }
 
+final class AuthFailure extends AppFailure {
+  const AuthFailure(super.message);
+}
+
 final class UnknownFailure extends AppFailure {
   const UnknownFailure(super.message);
 }

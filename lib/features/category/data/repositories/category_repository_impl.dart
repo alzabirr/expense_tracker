@@ -3,13 +3,14 @@ import 'package:spendra/features/category/data/models/category_isar_model.dart';
 import 'package:spendra/features/category/domain/entities/category.dart';
 import 'package:spendra/features/category/domain/repositories/category_repository.dart';
 import 'package:spendra/core/utils/result.dart';
-
+import 'package:spendra/core/sync/supabase_sync_service.dart';
 import 'package:spendra/features/expense/data/models/expense_isar_model.dart';
 
 class CategoryRepositoryImpl implements CategoryRepository {
-  CategoryRepositoryImpl(this._isar);
+  CategoryRepositoryImpl(this._isar, [this._syncService]);
 
   final Isar _isar;
+  final SupabaseSyncService? _syncService;
 
   // ── Mappers ──────────────────────────────────────────────────────────────
   Category _toEntity(CategoryIsarModel m) => Category(
@@ -82,6 +83,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       await _isar.writeTxn(() async {
         await _isar.categoryIsarModels.put(_toModel(category));
       });
+      _syncService?.syncCategory(category);
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);
@@ -102,6 +104,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       await _isar.writeTxn(() async {
         await _isar.categoryIsarModels.put(model);
       });
+      _syncService?.syncCategory(category);
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);
@@ -120,6 +123,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       await _isar.writeTxn(() async {
         await _isar.categoryIsarModels.put(model);
       });
+      _syncService?.syncCategory(_toEntity(model));
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);
@@ -137,6 +141,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       await _isar.writeTxn(() async {
         await _isar.categoryIsarModels.delete(model.id);
       });
+      _syncService?.deleteCategory(uuid);
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);

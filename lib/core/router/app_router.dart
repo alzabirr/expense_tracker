@@ -11,14 +11,26 @@ import 'package:spendra/features/expense/presentation/screens/transaction_detail
 import 'package:spendra/features/category/presentation/screens/category_management_screen.dart';
 import 'package:spendra/features/budget/presentation/screens/budget_screen.dart';
 import 'package:spendra/features/onboarding/presentation/screens/onboarding_screen.dart';
+import 'package:spendra/features/auth/presentation/screens/login_screen.dart';
+import 'package:spendra/features/auth/presentation/screens/signup_screen.dart';
+import 'package:spendra/features/profile/presentation/screens/profile_screen.dart';
 
-final appRouter = GoRouter(
-  initialLocation: RouteNames.onboarding,
-  routes: [
-    GoRoute(
-      path: RouteNames.onboarding,
-      builder: (context, state) => const OnboardingScreen(),
-    ),
+GoRouter createAppRouter({String initialLocation = RouteNames.dashboard}) =>
+    GoRouter(
+      initialLocation: initialLocation,
+      routes: [
+        GoRoute(
+          path: RouteNames.onboarding,
+          builder: (context, state) => const OnboardingScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.login,
+          builder: (context, state) => const LoginScreen(),
+        ),
+        GoRoute(
+          path: RouteNames.signup,
+          builder: (context, state) => const SignupScreen(),
+        ),
     ShellRoute(
       builder: (context, state, child) => ShellScreen(child: child),
       routes: [
@@ -108,5 +120,11 @@ final appRouter = GoRouter(
       path: RouteNames.budgetScreen,
       builder: (context, state) => const BudgetScreen(),
     ),
+    GoRoute(
+      path: RouteNames.userProfile,
+      builder: (context, state) => const ProfileScreen(),
+    ),
   ],
 );
+
+final appRouter = createAppRouter();

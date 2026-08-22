@@ -5,11 +5,13 @@ import 'package:spendra/features/budget/domain/entities/budget.dart';
 import 'package:spendra/features/budget/domain/repositories/budget_repository.dart';
 import 'package:spendra/core/utils/result.dart';
 import 'package:spendra/core/utils/date_utils.dart';
+import 'package:spendra/core/sync/supabase_sync_service.dart';
 
 class BudgetRepositoryImpl implements BudgetRepository {
-  BudgetRepositoryImpl(this._isar);
+  BudgetRepositoryImpl(this._isar, [this._syncService]);
 
   final Isar _isar;
+  final SupabaseSyncService? _syncService;
   final _uuid = const Uuid();
 
   Budget _toEntity(BudgetIsarModel m) => Budget(
@@ -73,6 +75,7 @@ class BudgetRepositoryImpl implements BudgetRepository {
       await _isar.writeTxn(() async {
         await _isar.budgetIsarModels.put(model);
       });
+      _syncService?.syncBudget(_toEntity(model));
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);
@@ -96,6 +99,7 @@ class BudgetRepositoryImpl implements BudgetRepository {
       await _isar.writeTxn(() async {
         await _isar.budgetIsarModels.put(model);
       });
+      _syncService?.syncBudget(_toEntity(model));
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);
@@ -113,6 +117,7 @@ class BudgetRepositoryImpl implements BudgetRepository {
       await _isar.writeTxn(() async {
         await _isar.budgetIsarModels.delete(m.id);
       });
+      _syncService?.deleteBudget(uuid);
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);

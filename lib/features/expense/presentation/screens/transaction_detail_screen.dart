@@ -84,7 +84,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                   ],
                   const SizedBox(height: AppSpacing.base),
                   Text(
-                    '${expense.isExpense ? '-' : '+'}$symbol${CurrencyFormatter.formatAmount(expense.amount)}',
+                    '${expense.isExpense ? '-' : '+'}$symbol ${CurrencyFormatter.formatAmount(expense.amount)}',
                     style: theme.textTheme.displayMedium?.copyWith(
                       color: color,
                       fontWeight: FontWeight.w700,

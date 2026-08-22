@@ -4,10 +4,13 @@ import 'package:spendra/features/expense/domain/entities/expense.dart';
 import 'package:spendra/features/expense/domain/repositories/expense_repository.dart';
 import 'package:spendra/core/utils/result.dart';
 
+import 'package:spendra/core/sync/supabase_sync_service.dart';
+
 class ExpenseRepositoryImpl implements ExpenseRepository {
-  ExpenseRepositoryImpl(this._isar);
+  ExpenseRepositoryImpl(this._isar, [this._syncService]);
 
   final Isar _isar;
+  final SupabaseSyncService? _syncService;
 
   // ── Mappers ──────────────────────────────────────────────────────────────
   Expense _toEntity(ExpenseIsarModel m) => Expense(
@@ -113,6 +116,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       await _isar.writeTxn(() async {
         await _isar.expenseIsarModels.put(_toModel(expense));
       });
+      _syncService?.syncExpense(expense);
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);
@@ -133,6 +137,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       await _isar.writeTxn(() async {
         await _isar.expenseIsarModels.put(model);
       });
+      _syncService?.syncExpense(expense);
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);
@@ -153,6 +158,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       await _isar.writeTxn(() async {
         await _isar.expenseIsarModels.put(model);
       });
+      _syncService?.syncExpense(_toEntity(model));
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);
@@ -170,6 +176,7 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
       await _isar.writeTxn(() async {
         await _isar.expenseIsarModels.delete(model.id);
       });
+      _syncService?.deleteExpense(uuid);
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);
