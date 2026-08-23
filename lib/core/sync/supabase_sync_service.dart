@@ -7,6 +7,8 @@ import 'package:spendra/features/category/data/models/category_isar_model.dart';
 import 'package:spendra/features/category/domain/entities/category.dart';
 import 'package:spendra/features/expense/data/models/expense_isar_model.dart';
 import 'package:spendra/features/expense/domain/entities/expense.dart';
+import 'package:spendra/features/settings/data/models/settings_isar_model.dart';
+import 'package:spendra/features/settings/domain/entities/app_settings.dart';
 
 class SupabaseSyncService {
   SupabaseSyncService(this._supabase);
@@ -40,7 +42,7 @@ class SupabaseSyncService {
         'is_deleted': expense.isDeleted,
       };
 
-      await _supabase.from('expenses').upsert(payload);
+      await _supabase.from('expenses').upsert(payload, onConflict: 'id');
     } catch (e) {
       debugPrint('SupabaseSync: syncExpense error: $e');
     }
@@ -65,7 +67,7 @@ class SupabaseSyncService {
         'sort_order': category.sortOrder,
       };
 
-      await _supabase.from('categories').upsert(payload);
+      await _supabase.from('categories').upsert(payload, onConflict: 'id');
     } catch (e) {
       debugPrint('SupabaseSync: syncCategory error: $e');
     }
@@ -87,9 +89,30 @@ class SupabaseSyncService {
         'alert_thresholds': budget.alertThresholds,
       };
 
-      await _supabase.from('budgets').upsert(payload);
+      await _supabase.from('budgets').upsert(payload, onConflict: 'id');
     } catch (e) {
       debugPrint('SupabaseSync: syncBudget error: $e');
+    }
+  }
+
+  // ── Sync User Settings (Currency, Region, Theme) ──────────────────────────
+  Future<void> syncSettings(AppSettings settings) async {
+    final userId = currentUserId;
+    if (userId == null) return;
+
+    try {
+      final payload = {
+        'user_id': userId,
+        'currency_code': settings.currencyCode,
+        'locale': settings.locale,
+        'theme_mode': settings.themeMode.name,
+        'is_biometric_lock_enabled': settings.isBiometricLockEnabled,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      await _supabase.from('user_settings').upsert(payload, onConflict: 'user_id');
+    } catch (e) {
+      debugPrint('SupabaseSync: syncSettings error: $e');
     }
   }
 
@@ -172,7 +195,7 @@ class SupabaseSyncService {
         await _supabase.from('expenses').upsert(expPayloads);
       }
 
-      // 3. Budgets
+      // 4. Budgets
       final budgetModels = await isar.budgetIsarModels.where().findAll();
       if (budgetModels.isNotEmpty) {
         final budgetPayloads = budgetModels.map((m) => {
@@ -185,6 +208,20 @@ class SupabaseSyncService {
           'alert_thresholds': m.alertThresholds,
         }).toList();
         await _supabase.from('budgets').upsert(budgetPayloads);
+      }
+
+      // 4. User Settings (Currency, Region, Theme)
+      final settingsModel = await isar.settingsIsarModels.get(0);
+      if (settingsModel != null) {
+        final settingsPayload = {
+          'user_id': userId,
+          'currency_code': settingsModel.currencyCode,
+          'locale': settingsModel.locale,
+          'theme_mode': AppThemeMode.values[settingsModel.themeModeIndex].name,
+          'is_biometric_lock_enabled': settingsModel.isBiometricLockEnabled,
+          'updated_at': DateTime.now().toIso8601String(),
+        };
+        await _supabase.from('user_settings').upsert(settingsPayload);
       }
     } catch (e) {
       debugPrint('SupabaseSync: pushAllLocalData error: $e');
@@ -285,6 +322,29 @@ class SupabaseSyncService {
 
             await isar.budgetIsarModels.put(model);
           }
+        });
+      }
+
+      // 4. Pull User Settings
+      final settingsData = await _supabase.from('user_settings').select().eq('user_id', userId).maybeSingle();
+      if (settingsData != null) {
+        final currency = (settingsData['currency_code'] as String?) ?? 'USD';
+        final locale = (settingsData['locale'] as String?) ?? 'en_US';
+        final themeStr = (settingsData['theme_mode'] as String?) ?? 'system';
+        final themeMode = AppThemeMode.values.firstWhere(
+          (t) => t.name == themeStr,
+          orElse: () => AppThemeMode.system,
+        );
+        final isBio = (settingsData['is_biometric_lock_enabled'] as bool?) ?? false;
+
+        await isar.writeTxn(() async {
+          final existing = await isar.settingsIsarModels.get(0) ?? SettingsIsarModel();
+          existing
+            ..currencyCode = currency
+            ..locale = locale
+            ..themeModeIndex = themeMode.index
+            ..isBiometricLockEnabled = isBio;
+          await isar.settingsIsarModels.put(existing);
         });
       }
     } catch (e) {

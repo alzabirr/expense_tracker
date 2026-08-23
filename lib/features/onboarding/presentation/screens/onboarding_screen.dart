@@ -95,7 +95,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     if (!mounted) return;
     final currentUser = ref.read(supabaseClientProvider).auth.currentUser;
     if (currentUser == null) {
-      context.go(RouteNames.login);
+      context.go(RouteNames.signup);
     } else {
       context.go(RouteNames.dashboard);
     }

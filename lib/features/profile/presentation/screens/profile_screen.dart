@@ -7,7 +7,6 @@ import 'package:spendra/core/router/route_names.dart';
 import 'package:spendra/core/theme/app_colors.dart';
 import 'package:spendra/core/theme/app_radii.dart';
 import 'package:spendra/core/theme/app_spacing.dart';
-import 'package:spendra/core/utils/currency_formatter.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -162,68 +161,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     );
   }
 
-  Future<void> _handlePasswordReset(BuildContext context, String email) async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Reset Password'),
-        content: Text(
-          'We will send a password reset link to:\n\n$email\n\nDo you wish to proceed?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(ctx, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.coral,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('Send Email'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirm == true && context.mounted) {
-      final success = await ref
-          .read(authControllerProvider.notifier)
-          .resetPassword(email);
-
-      if (context.mounted) {
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Row(
-                children: [
-                  Icon(Icons.mark_email_read_outlined,
-                      color: Colors.white, size: 20),
-                  SizedBox(width: 8),
-                  Expanded(
-                    child: Text('Password reset link sent to your email!'),
-                  ),
-                ],
-              ),
-              backgroundColor: AppColors.teal,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        } else {
-          final error = ref.read(authControllerProvider).errorMessage;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(error ?? 'Failed to send password reset email.'),
-              backgroundColor: AppColors.danger,
-              behavior: SnackBarBehavior.floating,
-            ),
-          );
-        }
-      }
-    }
-  }
-
   Future<void> _handleSignOut(BuildContext context) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -252,7 +189,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     if (confirm == true && context.mounted) {
       await ref.read(authControllerProvider.notifier).signOut();
       if (context.mounted) {
-        context.go(RouteNames.login);
+        context.go(RouteNames.signup);
       }
     }
   }
@@ -269,18 +206,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = authState.user;
     final isGuest = user == null;
 
-    final totalExpenses =
-        ref.watch(allExpensesStreamProvider).valueOrNull?.length ?? 0;
-    final totalCategories =
-        ref.watch(categoriesStreamProvider).valueOrNull?.length ?? 0;
-    final currencyCode = ref.watch(currencyCodeProvider);
-    final currencySymbol = CurrencyFormatter.symbol(currencyCode);
-
     final displayName = (user?.name?.isNotEmpty == true)
         ? user!.name!
         : (isGuest ? 'Guest User' : 'Spendra User');
     final email = isGuest ? 'Offline Mode (Local Storage)' : user.email;
-    final initial = (displayName.isNotEmpty ? displayName[0] : 'U').toUpperCase();
+    final initial =
+        (displayName.isNotEmpty ? displayName[0] : 'U').toUpperCase();
 
     return Scaffold(
       body: CustomScrollView(
@@ -336,42 +267,78 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Stack(
                       alignment: Alignment.bottomRight,
                       children: [
-                        Container(
-                          width: 86,
-                          height: 86,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            gradient: LinearGradient(
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                              colors: isGuest
-                                  ? [
-                                      AppColors.coral.withValues(alpha: 0.8),
-                                      AppColors.coral,
-                                    ]
-                                  : [
-                                      AppColors.teal,
-                                      const Color(0xFF0EA5E9),
-                                    ],
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: (isGuest ? AppColors.coral : AppColors.teal)
-                                    .withValues(alpha: 0.35),
-                                blurRadius: 14,
-                                offset: const Offset(0, 6),
+                        ClipOval(
+                          child: Container(
+                            width: 86,
+                            height: 86,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              gradient: LinearGradient(
+                                begin: Alignment.topLeft,
+                                end: Alignment.bottomRight,
+                                colors: isGuest
+                                    ? [
+                                        AppColors.coral.withValues(alpha: 0.8),
+                                        AppColors.coral,
+                                      ]
+                                    : [
+                                        AppColors.teal,
+                                        const Color(0xFF0EA5E9),
+                                      ],
                               ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Text(
-                              initial,
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 36,
-                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (isGuest
+                                          ? AppColors.coral
+                                          : AppColors.teal)
+                                      .withValues(alpha: 0.35),
+                                  blurRadius: 14,
+                                  offset: const Offset(0, 6),
+                                ),
+                              ],
                             ),
+                            child: (user?.photoUrl != null && !isGuest)
+                                ? Image.network(
+                                    user!.photoUrl!,
+                                    width: 86,
+                                    height: 86,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) => Center(
+                                      child: Text(
+                                        initial,
+                                        style: const TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 36,
+                                        ),
+                                      ),
+                                    ),
+                                    loadingBuilder:
+                                        (context, child, loadingProgress) {
+                                      if (loadingProgress == null) return child;
+                                      return Center(
+                                        child: Text(
+                                          initial,
+                                          style: const TextStyle(
+                                            color: Colors.white,
+                                            fontWeight: FontWeight.w800,
+                                            fontSize: 36,
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                  )
+                                : Center(
+                                    child: Text(
+                                      initial,
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w800,
+                                        fontSize: 36,
+                                      ),
+                                    ),
+                                  ),
                           ),
                         ),
                         Container(
@@ -384,7 +351,9 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             width: 14,
                             height: 14,
                             decoration: BoxDecoration(
-                              color: isGuest ? AppColors.warning : AppColors.success,
+                              color: isGuest
+                                  ? AppColors.warning
+                                  : AppColors.success,
                               shape: BoxShape.circle,
                             ),
                           ),
@@ -393,14 +362,38 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     ),
                     const SizedBox(height: AppSpacing.md),
 
-                    // User Name
-                    Text(
-                      displayName,
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: -0.5,
-                      ),
-                      textAlign: TextAlign.center,
+                    // User Name with edit button
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            displayName,
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: -0.5,
+                            ),
+                            textAlign: TextAlign.center,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (!isGuest) ...[
+                          const SizedBox(width: 6),
+                          GestureDetector(
+                            onTap: () => _showEditNameDialog(
+                              context,
+                              user.name ?? '',
+                            ),
+                            child: const Icon(
+                              Icons.edit_outlined,
+                              size: 18,
+                              color: AppColors.coral,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                     const SizedBox(height: 4),
 
@@ -435,15 +428,17 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            isGuest ? Icons.cloud_off_rounded : Icons.cloud_done_rounded,
-                            size: 14,
+                            isGuest
+                                ? Icons.person_outline_rounded
+                                : Icons.verified_rounded,
+                            size: 15,
                             color: isGuest ? AppColors.coral : AppColors.teal,
                           ),
                           const SizedBox(width: 6),
                           Text(
                             isGuest
-                                ? 'Guest Mode • Local Storage'
-                                : 'Cloud Connected • Supabase',
+                                ? 'Guest Account'
+                                : 'Verified Pro Member',
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
@@ -459,297 +454,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             ),
           ),
 
-          // ── Data & Financial Snapshot ─────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.base,
-                AppSpacing.sm,
-                AppSpacing.base,
-                AppSpacing.sm,
-              ),
-              child: Text(
-                'Data Overview',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: textSecondary,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.receipt_long_rounded,
-                      iconColor: AppColors.coral,
-                      title: 'Transactions',
-                      value: '$totalExpenses',
-                      surface: surface,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.category_rounded,
-                      iconColor: const Color(0xFF8B5CF6),
-                      title: 'Categories',
-                      value: '$totalCategories',
-                      surface: surface,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: _StatCard(
-                      icon: Icons.monetization_on_rounded,
-                      iconColor: AppColors.teal,
-                      title: 'Currency',
-                      value: '$currencyCode ($currencySymbol)',
-                      surface: surface,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-
-          // ── Personal Information ──────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.base,
-                AppSpacing.xl,
-                AppSpacing.base,
-                AppSpacing.sm,
-              ),
-              child: Text(
-                'Account Information',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: textSecondary,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: surface,
-                  borderRadius: AppRadii.lgRadius,
-                ),
-                child: Column(
-                  children: [
-                    _ProfileInfoTile(
-                      icon: Icons.badge_outlined,
-                      label: 'Full Name',
-                      value: displayName,
-                      trailing: !isGuest
-                          ? IconButton(
-                              icon: const Icon(Icons.edit_outlined, size: 18),
-                              color: AppColors.coral,
-                              onPressed: () => _showEditNameDialog(
-                                context,
-                                user.name ?? '',
-                              ),
-                            )
-                          : null,
-                      onTap: !isGuest
-                          ? () => _showEditNameDialog(context, user.name ?? '')
-                          : null,
-                    ),
-                    const Divider(height: 1, indent: 56),
-                    _ProfileInfoTile(
-                      icon: Icons.alternate_email_rounded,
-                      label: 'Email Address',
-                      value: email,
-                    ),
-                    const Divider(height: 1, indent: 56),
-                    _ProfileInfoTile(
-                      icon: Icons.fingerprint_rounded,
-                      label: 'Account ID',
-                      value: isGuest ? 'Local-Guest-Account' : user.id,
-                      trailing: !isGuest
-                          ? IconButton(
-                              icon: const Icon(Icons.copy_rounded, size: 18),
-                              color: textSecondary,
-                              tooltip: 'Copy User ID',
-                              onPressed: () {
-                                Clipboard.setData(
-                                  ClipboardData(text: user.id),
-                                );
-                                HapticFeedback.lightImpact();
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Account ID copied to clipboard!'),
-                                    duration: Duration(seconds: 2),
-                                    behavior: SnackBarBehavior.floating,
-                                  ),
-                                );
-                              },
-                            )
-                          : null,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          // ── Cloud Sync & Security ─────────────────────────────────
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(
-                AppSpacing.base,
-                AppSpacing.xl,
-                AppSpacing.base,
-                AppSpacing.sm,
-              ),
-              child: Text(
-                'Sync & Security',
-                style: theme.textTheme.labelSmall?.copyWith(
-                  color: textSecondary,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ),
-          ),
-
-          SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: surface,
-                  borderRadius: AppRadii.lgRadius,
-                ),
-                child: Column(
-                  children: [
-                    if (!isGuest) ...[
-                      ListTile(
-                        leading: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AppColors.teal.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: authState.isSyncing
-                              ? const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    color: AppColors.teal,
-                                  ),
-                                )
-                              : const Icon(
-                                  Icons.sync_rounded,
-                                  color: AppColors.teal,
-                                  size: 20,
-                                ),
-                        ),
-                        title: const Text('Cloud Sync Now'),
-                        subtitle: Text(
-                          authState.isSyncing
-                              ? 'Synchronizing local data with Supabase...'
-                              : 'Push and pull latest changes',
-                          style: TextStyle(color: textSecondary, fontSize: 12),
-                        ),
-                        trailing: TextButton(
-                          onPressed: authState.isSyncing
-                              ? null
-                              : () async {
-                                  await ref
-                                      .read(authControllerProvider.notifier)
-                                      .syncData();
-                                  if (context.mounted) {
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      const SnackBar(
-                                        content: Text('Cloud sync completed!'),
-                                        backgroundColor: AppColors.teal,
-                                        behavior: SnackBarBehavior.floating,
-                                      ),
-                                    );
-                                  }
-                                },
-                          child: const Text('Sync'),
-                        ),
-                      ),
-                      const Divider(height: 1, indent: 56),
-                      ListTile(
-                        leading: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AppColors.coral.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.lock_reset_rounded,
-                            color: AppColors.coral,
-                            size: 20,
-                          ),
-                        ),
-                        title: const Text('Reset Password'),
-                        subtitle: Text(
-                          'Send password recovery email',
-                          style: TextStyle(color: textSecondary, fontSize: 12),
-                        ),
-                        trailing: const Icon(Icons.chevron_right, size: 20),
-                        onTap: () => _handlePasswordReset(context, user.email),
-                      ),
-                    ] else ...[
-                      ListTile(
-                        leading: Container(
-                          width: 36,
-                          height: 36,
-                          decoration: BoxDecoration(
-                            color: AppColors.coral.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: const Icon(
-                            Icons.cloud_upload_outlined,
-                            color: AppColors.coral,
-                            size: 20,
-                          ),
-                        ),
-                        title: const Text('Enable Cloud Backup'),
-                        subtitle: Text(
-                          'Sign in or create account to backup data',
-                          style: TextStyle(color: textSecondary, fontSize: 12),
-                        ),
-                        trailing: ElevatedButton(
-                          onPressed: () => context.push(RouteNames.login),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.coral,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 6,
-                            ),
-                          ),
-                          child: const Text('Sign In'),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-          ),
-
           // ── Session / Danger Zone ────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSpacing.base,
-                AppSpacing.xl,
+                AppSpacing.base,
                 AppSpacing.base,
                 AppSpacing.base,
               ),
@@ -800,129 +510,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
           const SliverToBoxAdapter(child: SizedBox(height: 60)),
         ],
-      ),
-    );
-  }
-}
-
-class _StatCard extends StatelessWidget {
-  const _StatCard({
-    required this.icon,
-    required this.iconColor,
-    required this.title,
-    required this.value,
-    required this.surface,
-  });
-
-  final IconData icon;
-  final Color iconColor;
-  final String title;
-  final String value;
-  final Color surface;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppSpacing.sm,
-        vertical: AppSpacing.md,
-      ),
-      decoration: BoxDecoration(
-        color: surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-        ),
-      ),
-      child: Column(
-        children: [
-          Icon(icon, color: iconColor, size: 22),
-          const SizedBox(height: 6),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-          const SizedBox(height: 2),
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 11,
-              color: isDark
-                  ? AppColors.darkTextSecondary
-                  : AppColors.lightTextSecondary,
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _ProfileInfoTile extends StatelessWidget {
-  const _ProfileInfoTile({
-    required this.icon,
-    required this.label,
-    required this.value,
-    this.trailing,
-    this.onTap,
-  });
-
-  final IconData icon;
-  final String label;
-  final String value;
-  final Widget? trailing;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Material(
-      type: MaterialType.transparency,
-      child: ListTile(
-        onTap: onTap,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        leading: Container(
-          width: 38,
-          height: 38,
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.04),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: Icon(icon, size: 20, color: AppColors.coral),
-        ),
-        title: Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: isDark
-                ? AppColors.darkTextSecondary
-                : AppColors.lightTextSecondary,
-          ),
-        ),
-        subtitle: Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        trailing: trailing,
       ),
     );
   }

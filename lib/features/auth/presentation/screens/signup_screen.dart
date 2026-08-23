@@ -16,33 +16,31 @@ class SignupScreen extends ConsumerStatefulWidget {
 
 class _SignupScreenState extends ConsumerState<SignupScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _nameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final name = _nameController.text.trim();
     final email = _emailController.text.trim();
     final password = _passwordController.text;
+    final name = email.split('@').first;
 
     final success = await ref
         .read(authControllerProvider.notifier)
         .signUp(email: email, password: password, name: name);
 
-    if (success && mounted) {
+    if (!mounted) return;
+
+    if (success) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Account created & logged in successfully!'),
@@ -51,7 +49,102 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
         ),
       );
       context.go(RouteNames.dashboard);
+    } else {
+      final error = ref.read(authControllerProvider).errorMessage ?? '';
+      if (error.toLowerCase().contains('verification') ||
+          error.toLowerCase().contains('confirm') ||
+          error.toLowerCase().contains('inbox')) {
+        _showVerificationDialog(
+            context, email, Theme.of(context).brightness == Brightness.dark);
+      }
     }
+  }
+
+  void _showVerificationDialog(
+      BuildContext context, String email, bool isDark) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor:
+            isDark ? AppColors.darkSurface : AppColors.lightSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Column(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: AppColors.teal.withValues(alpha: 0.15),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.mark_email_read_outlined,
+                color: AppColors.teal,
+                size: 32,
+              ),
+            ),
+            const SizedBox(height: 16),
+            const Text(
+              'Check Your Inbox! 📧',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'A verification link was sent to:\n',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
+            ),
+            Text(
+              email,
+              textAlign: TextAlign.center,
+              style:
+                  const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'Please click the link in your email to activate your account, then sign in to begin tracking.',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark
+                    ? AppColors.darkTextSecondary
+                    : AppColors.lightTextSecondary,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.pop(ctx);
+                context.pushReplacement(RouteNames.login);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.teal,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14)),
+                padding: const EdgeInsets.symmetric(vertical: 12),
+              ),
+              child: const Text('Go to Sign In',
+                  style: TextStyle(fontWeight: FontWeight.bold)),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -84,27 +177,26 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   // App Logo & Header
                   Center(
                     child: Container(
-                      width: 64,
-                      height: 64,
+                      width: 108,
+                      height: 108,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.teal, AppColors.coral],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(26),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.teal.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                            color: isDark
+                                ? Colors.black.withValues(alpha: 0.4)
+                                : AppColors.teal.withValues(alpha: 0.25),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.person_add_alt_1_rounded,
-                        color: Colors.white,
-                        size: 32,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(26),
+                        child: Image.asset(
+                          'assets/images/spe.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),
@@ -113,7 +205,7 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     'Create Account',
                     textAlign: TextAlign.center,
                     style: theme.textTheme.headlineMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: AppSpacing.xs),
@@ -153,27 +245,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                     const SizedBox(height: AppSpacing.lg),
                   ],
 
-                  // Full Name
-                  TextFormField(
-                    controller: _nameController,
-                    textCapitalization: TextCapitalization.words,
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: 'Full Name',
-                      prefixIcon: const Icon(Icons.person_outline),
-                      border: OutlineInputBorder(
-                        borderRadius: AppRadii.mdRadius,
-                      ),
-                    ),
-                    validator: (val) {
-                      if (val == null || val.trim().isEmpty) {
-                        return 'Please enter your name';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.base),
-
                   // Email Field
                   TextFormField(
                     controller: _emailController,
@@ -202,7 +273,8 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                   TextFormField(
                     controller: _passwordController,
                     obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.next,
+                    textInputAction: TextInputAction.done,
+                    onFieldSubmitted: (_) => _submit(),
                     decoration: InputDecoration(
                       labelText: 'Password',
                       prefixIcon: const Icon(Icons.lock_outline),
@@ -226,28 +298,6 @@ class _SignupScreenState extends ConsumerState<SignupScreen> {
                       }
                       if (val.length < 6) {
                         return 'Password must be at least 6 characters';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: AppSpacing.base),
-
-                  // Confirm Password Field
-                  TextFormField(
-                    controller: _confirmPasswordController,
-                    obscureText: _obscurePassword,
-                    textInputAction: TextInputAction.done,
-                    onFieldSubmitted: (_) => _submit(),
-                    decoration: InputDecoration(
-                      labelText: 'Confirm Password',
-                      prefixIcon: const Icon(Icons.lock_reset),
-                      border: OutlineInputBorder(
-                        borderRadius: AppRadii.mdRadius,
-                      ),
-                    ),
-                    validator: (val) {
-                      if (val != _passwordController.text) {
-                        return 'Passwords do not match';
                       }
                       return null;
                     },

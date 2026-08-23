@@ -22,7 +22,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
         isDefault: m.isDefault,
         monthlyBudget: m.monthlyBudget,
         isArchived: m.isArchived,
-        sortOrder: m.sortOrder,
+        sortOrder: m.sortOrder != 0 ? m.sortOrder : m.id,
       );
 
   CategoryIsarModel _toModel(Category e) => CategoryIsarModel()
@@ -42,7 +42,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
     final query = _isar.categoryIsarModels
         .filter()
         .optional(!includeArchived, (q) => q.isArchivedEqualTo(false))
-        .sortBySortOrder()
+        .sortBySortOrderDesc()
         .build();
     return query.watch(fireImmediately: true).map(
           (list) => list.map(_toEntity).toList(),
@@ -55,7 +55,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
         .filter()
         .parentIdIsNull()
         .isArchivedEqualTo(false)
-        .sortBySortOrder()
+        .sortBySortOrderDesc()
         .build()
         .watch(fireImmediately: true)
         .map((list) => list.map(_toEntity).toList());

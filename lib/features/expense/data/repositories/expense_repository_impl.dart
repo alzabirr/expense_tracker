@@ -21,8 +21,8 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         type: TransactionType.values[m.typeIndex],
         paymentMethod: PaymentMethod.values[m.paymentMethodIndex],
         date: m.date ?? DateTime.now(),
-        createdAt: m.createdAt ?? DateTime.now(),
-        updatedAt: m.updatedAt ?? DateTime.now(),
+        createdAt: m.createdAt ?? m.date ?? DateTime.fromMillisecondsSinceEpoch(m.id * 1000),
+        updatedAt: m.updatedAt ?? m.date ?? DateTime.now(),
         merchant: m.merchant,
         note: m.note,
         location: m.location,
@@ -54,35 +54,61 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
     final query = _isar.expenseIsarModels
         .filter()
         .optional(!includeDeleted, (q) => q.isDeletedEqualTo(false))
-        .sortByDateDesc()
+        .sortByCreatedAtDesc()
         .build();
     return query
         .watch(fireImmediately: true)
-        .map((list) => list.map(_toEntity).toList());
+        .map((list) {
+          final res = list.map(_toEntity).toList();
+          res.sort((a, b) {
+            final cmp = b.createdAt.compareTo(a.createdAt);
+            if (cmp != 0) return cmp;
+            return b.date.compareTo(a.date);
+          });
+          return res;
+        });
   }
 
   @override
   Stream<List<Expense>> watchByDateRange(DateTime start, DateTime end) {
-    return _isar.expenseIsarModels
+    final query = _isar.expenseIsarModels
         .filter()
         .isDeletedEqualTo(false)
         .dateBetween(start, end)
-        .sortByDateDesc()
-        .build()
+        .sortByCreatedAtDesc()
+        .build();
+    return query
         .watch(fireImmediately: true)
-        .map((list) => list.map(_toEntity).toList());
+        .map((list) {
+          final res = list.map(_toEntity).toList();
+          res.sort((a, b) {
+            final cmp = b.createdAt.compareTo(a.createdAt);
+            if (cmp != 0) return cmp;
+            return b.date.compareTo(a.date);
+          });
+          return res;
+        });
   }
 
   @override
   Stream<List<Expense>> watchByCategory(String categoryId) {
-    return _isar.expenseIsarModels
+    final query = _isar.expenseIsarModels
         .filter()
         .isDeletedEqualTo(false)
         .categoryIdEqualTo(categoryId)
-        .sortByDateDesc()
-        .build()
+        .sortByCreatedAtDesc()
+        .build();
+    return query
         .watch(fireImmediately: true)
-        .map((list) => list.map(_toEntity).toList());
+        .map((list) {
+          final res = list.map(_toEntity).toList();
+          res.sort((a, b) {
+            final cmp = b.createdAt.compareTo(a.createdAt);
+            if (cmp != 0) return cmp;
+            return b.date.compareTo(a.date);
+          });
+          return res;
+        });
   }
 
   @override
@@ -91,9 +117,15 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
         .filter()
         .isDeletedEqualTo(false)
         .dateBetween(start, end)
-        .sortByDateDesc()
+        .sortByCreatedAtDesc()
         .findAll();
-    return models.map(_toEntity).toList();
+    final res = models.map(_toEntity).toList();
+    res.sort((a, b) {
+      final cmp = b.createdAt.compareTo(a.createdAt);
+      if (cmp != 0) return cmp;
+      return b.date.compareTo(a.date);
+    });
+    return res;
   }
 
   @override
@@ -152,13 +184,10 @@ class ExpenseRepositoryImpl implements ExpenseRepository {
           .uuidEqualTo(uuid)
           .findFirst();
       if (model == null) return const Failure(NotFoundFailure('Not found'));
-      model
-        ..isDeleted = true
-        ..updatedAt = DateTime.now();
       await _isar.writeTxn(() async {
-        await _isar.expenseIsarModels.put(model);
+        await _isar.expenseIsarModels.delete(model.id);
       });
-      _syncService?.syncExpense(_toEntity(model));
+      _syncService?.deleteExpense(uuid);
       return const Success(null);
     } catch (e, st) {
       return Failure(DatabaseFailure(e.toString()), stackTrace: st);

@@ -15,6 +15,7 @@ import 'package:spendra/core/widgets/section_header.dart';
 import 'package:spendra/features/category/domain/entities/category.dart';
 import 'package:spendra/features/category/presentation/widgets/category_chip.dart';
 import 'package:spendra/features/expense/domain/entities/expense.dart';
+import 'package:spendra/features/expense/presentation/screens/add_edit_expense_screen.dart';
 
 class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
@@ -533,8 +534,9 @@ class _RecentTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final categories = ref.watch(categoriesStreamProvider).valueOrNull ?? [];
-    final Category? category = categories.where((c) => c.id == expense.categoryId).firstOrNull;
+    final customCats = ref.watch(categoriesStreamProvider).valueOrNull ?? [];
+    final allCats = [...defaultExpenseCategories, ...defaultIncomeCategories, ...customCats];
+    final Category? category = allCats.where((c) => c.id == expense.categoryId).firstOrNull;
 
     final isIncome = expense.isIncome;
 
@@ -582,60 +584,78 @@ class _RecentTile extends ConsumerWidget {
                 ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      expense.title,
-                      style: theme.textTheme.titleMedium,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    const SizedBox(height: 3),
-                    Row(
+                child: Builder(
+                  builder: (context) {
+                    final String catName = category?.name ?? (isIncome ? 'Income' : 'Expense');
+                    final bool isTitleSame = expense.title.trim().toLowerCase() == catName.trim().toLowerCase();
+
+                    String subtitleText;
+                    if (!isTitleSame) {
+                      subtitleText = catName;
+                    } else if (expense.merchant != null && expense.merchant!.trim().isNotEmpty) {
+                      subtitleText = expense.merchant!.trim();
+                    } else if (expense.note != null && expense.note!.trim().isNotEmpty) {
+                      subtitleText = expense.note!.trim();
+                    } else {
+                      subtitleText = AppDateUtils.formatTime(expense.date);
+                    }
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Category Name
-                        Flexible(
-                          child: Text(
-                            category?.name ?? (isIncome ? 'Income' : 'Expense'),
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: isDark
-                                  ? AppColors.darkTextSecondary
-                                  : AppColors.lightTextSecondary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
+                        Text(
+                          expense.title,
+                          style: theme.textTheme.titleMedium,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(width: 6),
-                        // Distinct Income/Expense Badge Tag
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 6,
-                            vertical: 1.5,
-                          ),
-                          decoration: BoxDecoration(
-                            color: isIncome
-                                ? AppColors.teal.withValues(alpha: 0.15)
-                                : AppColors.coral.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(5),
-                          ),
-                          child: Text(
-                            isIncome ? '+ INCOME' : 'EXPENSE',
-                            style: TextStyle(
-                              color: isIncome
-                                  ? AppColors.teal
-                                  : AppColors.coral,
-                              fontSize: 9.5,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.4,
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            // Smart Subtitle (No duplicate repetition)
+                            Flexible(
+                              child: Text(
+                                subtitleText,
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: isDark
+                                      ? AppColors.darkTextSecondary
+                                      : AppColors.lightTextSecondary,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
-                          ),
+                            const SizedBox(width: 6),
+                            // Distinct Income/Expense Badge Tag
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 1.5,
+                              ),
+                              decoration: BoxDecoration(
+                                color: isIncome
+                                    ? AppColors.teal.withValues(alpha: 0.15)
+                                    : AppColors.coral.withValues(alpha: 0.15),
+                                borderRadius: BorderRadius.circular(5),
+                              ),
+                              child: Text(
+                                isIncome ? '+ INCOME' : 'EXPENSE',
+                                style: TextStyle(
+                                  color: isIncome
+                                      ? AppColors.teal
+                                      : AppColors.coral,
+                                  fontSize: 9.5,
+                                  fontWeight: FontWeight.w700,
+                                  letterSpacing: 0.4,
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
               const SizedBox(width: 8),

@@ -130,20 +130,106 @@ class TransactionDetailScreen extends ConsumerWidget {
                     value: AppDateUtils.formatFull(expense.date),
                   ),
                   _DetailRow(
-                    icon: Icons.category_outlined,
-                    label: 'Category',
-                    value: cat?.name ?? 'Unknown',
+                    icon: Icons.access_time_rounded,
+                    label: 'Time',
+                    value: AppDateUtils.formatTime(expense.date),
                   ),
-                  _DetailRow(
-                    icon: Icons.payment_outlined,
-                    label: 'Payment',
-                    value: expense.paymentMethod.label,
-                  ),
-                  if (expense.note != null)
+                  if (expense.merchant != null &&
+                      expense.merchant!.trim().isNotEmpty)
                     _DetailRow(
-                      icon: Icons.note_outlined,
-                      label: 'Note',
-                      value: expense.note!,
+                      icon: Icons.storefront_outlined,
+                      label: 'Merchant / Place',
+                      value: expense.merchant!,
+                    ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: AppSpacing.base),
+
+            // Note Section
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppSpacing.base),
+              decoration: BoxDecoration(
+                color: surface,
+                borderRadius: AppRadii.lgRadius,
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.description_outlined,
+                              size: 18, color: color),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Note',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                      GestureDetector(
+                        onTap: () =>
+                            _editNoteDialog(context, ref, expense, isDark),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: color.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Icon(
+                                (expense.note != null &&
+                                        expense.note!.trim().isNotEmpty)
+                                    ? Icons.edit
+                                    : Icons.add,
+                                size: 13,
+                                color: color,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                (expense.note != null &&
+                                        expense.note!.trim().isNotEmpty)
+                                    ? 'Edit'
+                                    : 'Add Note',
+                                style: TextStyle(
+                                  color: color,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (expense.note != null && expense.note!.trim().isNotEmpty)
+                    Text(
+                      expense.note!,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        height: 1.4,
+                      ),
+                    )
+                  else
+                    Text(
+                      'No note added for this transaction.',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: textSecondary,
+                        fontStyle: FontStyle.italic,
+                      ),
                     ),
                 ],
               ),
@@ -182,6 +268,108 @@ class TransactionDetailScreen extends ConsumerWidget {
                   if (context.mounted) context.pop();
                 }
               },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _editNoteDialog(
+      BuildContext context, WidgetRef ref, Expense expense, bool isDark) {
+    final noteCtrl = TextEditingController(text: expense.note ?? '');
+    final color = expense.isExpense ? AppColors.coral : AppColors.teal;
+    final surface = isDark ? AppColors.darkSurface : AppColors.lightSurface;
+    final bg =
+        isDark ? AppColors.darkSurfaceElevated : AppColors.lightSurfaceElevated;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: surface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: AppSpacing.base,
+          right: AppSpacing.base,
+          top: AppSpacing.lg,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + AppSpacing.xl,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.edit_note, color: color, size: 24),
+                    const SizedBox(width: 8),
+                    const Text(
+                      'Transaction Note',
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    ),
+                  ],
+                ),
+                if (expense.note != null && expense.note!.isNotEmpty)
+                  TextButton(
+                    onPressed: () async {
+                      await ref
+                          .read(expenseRepositoryProvider)
+                          .update(expense.copyWith(note: null));
+                      if (ctx.mounted) Navigator.pop(ctx);
+                    },
+                    child: const Text('Clear',
+                        style: TextStyle(color: AppColors.danger)),
+                  ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            Container(
+              decoration: BoxDecoration(
+                color: bg,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              child: TextField(
+                controller: noteCtrl,
+                autofocus: true,
+                maxLines: 3,
+                style: const TextStyle(fontSize: 15),
+                decoration: const InputDecoration(
+                  hintText: 'Type your note or memo here...',
+                  border: InputBorder.none,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  final text = noteCtrl.text.trim();
+                  await ref.read(expenseRepositoryProvider).update(
+                      expense.copyWith(note: text.isEmpty ? null : text));
+                  if (ctx.mounted) Navigator.pop(ctx);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: color,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: const Text(
+                  'Save Note',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                ),
+              ),
             ),
           ],
         ),

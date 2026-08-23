@@ -60,31 +60,67 @@ class SettingsScreen extends ConsumerWidget {
                   child: Column(
                     children: [
                       InkWell(
-                        onTap: () => context.push(RouteNames.userProfile),
-                        borderRadius: user != null
-                            ? const BorderRadius.vertical(top: Radius.circular(24))
-                            : AppRadii.lgRadius,
+                        onTap: () => user != null
+                            ? context.push(RouteNames.userProfile)
+                            : context.push(RouteNames.signup),
+                        borderRadius: AppRadii.lgRadius,
                         child: Padding(
                           padding: const EdgeInsets.all(AppSpacing.base),
                           child: user != null
                               ? Row(
                                   children: [
-                                    CircleAvatar(
-                                      radius: 26,
-                                      backgroundColor:
-                                          AppColors.teal.withValues(alpha: 0.2),
-                                      child: Text(
-                                        (user.name?.isNotEmpty == true
-                                                ? user.name![0]
-                                                : user.email.isNotEmpty
-                                                    ? user.email[0]
-                                                    : 'U')
-                                            .toUpperCase(),
-                                        style: const TextStyle(
-                                          color: AppColors.teal,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 20,
+                                    ClipOval(
+                                      child: Container(
+                                        width: 52,
+                                        height: 52,
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          color: AppColors.teal
+                                              .withValues(alpha: 0.2),
                                         ),
+                                        child: (user.photoUrl != null)
+                                            ? Image.network(
+                                                user.photoUrl!,
+                                                width: 52,
+                                                height: 52,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error,
+                                                        stackTrace) =>
+                                                    Center(
+                                                  child: Text(
+                                                    (user.name?.isNotEmpty ==
+                                                                true
+                                                            ? user.name![0]
+                                                            : user.email
+                                                                    .isNotEmpty
+                                                                ? user.email[0]
+                                                                : 'U')
+                                                        .toUpperCase(),
+                                                    style: const TextStyle(
+                                                      color: AppColors.teal,
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 20,
+                                                    ),
+                                                  ),
+                                                ),
+                                              )
+                                            : Center(
+                                                child: Text(
+                                                  (user.name?.isNotEmpty == true
+                                                          ? user.name![0]
+                                                          : user.email
+                                                                  .isNotEmpty
+                                                              ? user.email[0]
+                                                              : 'U')
+                                                      .toUpperCase(),
+                                                  style: const TextStyle(
+                                                    color: AppColors.teal,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 20,
+                                                  ),
+                                                ),
+                                              ),
                                       ),
                                     ),
                                     const SizedBox(width: AppSpacing.md),
@@ -153,17 +189,25 @@ class SettingsScreen extends ConsumerWidget {
                               : Row(
                                   children: [
                                     Container(
-                                      width: 44,
-                                      height: 44,
+                                      width: 56,
+                                      height: 56,
                                       decoration: BoxDecoration(
-                                        color: AppColors.coral
-                                            .withValues(alpha: 0.15),
-                                        borderRadius: BorderRadius.circular(12),
+                                        borderRadius: BorderRadius.circular(16),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: AppColors.coral
+                                                .withValues(alpha: 0.2),
+                                            blurRadius: 12,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
                                       ),
-                                      child: const Icon(
-                                        Icons.cloud_sync_outlined,
-                                        color: AppColors.coral,
-                                        size: 24,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(16),
+                                        child: Image.asset(
+                                          'assets/images/spe.png',
+                                          fit: BoxFit.contain,
+                                        ),
                                       ),
                                     ),
                                     const SizedBox(width: AppSpacing.md),
@@ -173,7 +217,7 @@ class SettingsScreen extends ConsumerWidget {
                                             CrossAxisAlignment.start,
                                         children: [
                                           Text(
-                                            'Guest Account',
+                                            'Create Account',
                                             style: theme.textTheme.titleMedium
                                                 ?.copyWith(
                                                     fontWeight:
@@ -181,7 +225,7 @@ class SettingsScreen extends ConsumerWidget {
                                           ),
                                           const SizedBox(height: 2),
                                           Text(
-                                            'Sign in to sync your data with Supabase',
+                                            'Sign up to backup & sync your data',
                                             style: theme.textTheme.bodySmall
                                                 ?.copyWith(color: textSecondary),
                                           ),
@@ -197,120 +241,42 @@ class SettingsScreen extends ConsumerWidget {
                                 ),
                         ),
                       ),
-                      if (user != null) ...[
-                        const Divider(height: 1),
-                        Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: AppSpacing.base,
-                            vertical: 8,
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: const BoxDecoration(
-                                  color: AppColors.success,
-                                  shape: BoxShape.circle,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Supabase Cloud Sync Active',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: isDark ? Colors.white70 : Colors.black87,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              const Spacer(),
-                              TextButton.icon(
-                                onPressed: authState.isSyncing
-                                    ? null
-                                    : () async {
-                                        await ref
-                                            .read(
-                                                authControllerProvider.notifier)
-                                            .syncData();
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content:
-                                                  Text('Cloud sync completed!'),
-                                              backgroundColor: AppColors.teal,
-                                              behavior:
-                                                  SnackBarBehavior.floating,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                icon: authState.isSyncing
-                                    ? const SizedBox(
-                                        width: 14,
-                                        height: 14,
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                          color: AppColors.teal,
-                                        ),
-                                      )
-                                    : const Icon(Icons.sync, size: 16),
-                                label: Text(
-                                  authState.isSyncing ? 'Syncing...' : 'Sync Now',
-                                  style: const TextStyle(fontSize: 12),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
                     ],
                   ),
                 ),
               ),
             ),
 
-            // ── Account Section ────────────────────────────────────
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.base, AppSpacing.xl, AppSpacing.base, AppSpacing.sm),
-                child: Text('Account',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                        color: textSecondary, letterSpacing: 0.8)),
+            // ── Account Section (Only shown when not logged in) ────
+            if (user == null) ...[
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.base, AppSpacing.xl, AppSpacing.base, AppSpacing.sm),
+                  child: Text('Account',
+                      style: theme.textTheme.labelSmall?.copyWith(
+                          color: textSecondary, letterSpacing: 0.8)),
+                ),
               ),
-            ),
 
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: surface,
-                    borderRadius: AppRadii.lgRadius,
-                  ),
-                  child: Column(
-                    children: [
-                      _SettingsTile(
-                        icon: Icons.person_outline_rounded,
-                        title: 'Profile',
-                        subtitle: user != null
-                            ? (user.name ?? user.email)
-                            : 'View account & profile details',
-                        onTap: () => context.push(RouteNames.userProfile),
-                      ),
-                      if (user == null)
-                        _SettingsTile(
-                          icon: Icons.login_rounded,
-                          title: 'Sign In / Register',
-                          subtitle: 'Sync your data to cloud',
-                          onTap: () => context.push(RouteNames.login),
-                        ),
-                    ],
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.base),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: surface,
+                      borderRadius: AppRadii.lgRadius,
+                    ),
+                    child: _SettingsTile(
+                      icon: Icons.person_add_rounded,
+                      title: 'Create Account / Sign In',
+                      subtitle: 'Sync your data to cloud',
+                      onTap: () => context.push(RouteNames.signup),
+                    ),
                   ),
                 ),
               ),
-            ),
+            ],
 
             // ── Appearance ─────────────────────────────────────────
             SliverToBoxAdapter(
@@ -332,32 +298,23 @@ class SettingsScreen extends ConsumerWidget {
                     borderRadius: AppRadii.lgRadius,
                   ),
                   child: Column(
-                    children: AppThemeMode.values.map((mode) {
-                      final isSelected =
-                          settings?.themeMode == mode || (settings == null && mode == AppThemeMode.system);
-                      final label = switch (mode) {
-                        AppThemeMode.system => 'System Default',
-                        AppThemeMode.light => 'Light',
-                        AppThemeMode.dark => 'Dark',
-                      };
-                      final icon = switch (mode) {
-                        AppThemeMode.system => Icons.phone_android,
-                        AppThemeMode.light => Icons.light_mode,
-                        AppThemeMode.dark => Icons.dark_mode,
-                      };
-                      return _SettingsTile(
-                        icon: icon,
-                        title: label,
-                        trailing: isSelected
-                            ? const Icon(Icons.check_circle, color: AppColors.coral, size: 20)
-                            : null,
-                        onTap: () async {
-                          await ref
-                              .read(settingsRepositoryProvider)
-                              .updateTheme(mode);
+                    children: [
+                      _SettingsTile(
+                        icon: switch (settings?.themeMode ?? AppThemeMode.system) {
+                          AppThemeMode.system => Icons.brightness_auto_rounded,
+                          AppThemeMode.light => Icons.light_mode_rounded,
+                          AppThemeMode.dark => Icons.dark_mode_rounded,
                         },
-                      );
-                    }).toList(),
+                        title: 'Theme',
+                        subtitle: switch (settings?.themeMode ?? AppThemeMode.system) {
+                          AppThemeMode.system => 'System Default',
+                          AppThemeMode.light => 'Light Theme',
+                          AppThemeMode.dark => 'Dark Theme',
+                        },
+                        onTap: () => _showThemePicker(
+                            context, ref, settings?.themeMode ?? AppThemeMode.system),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -550,6 +507,191 @@ class SettingsScreen extends ConsumerWidget {
       orElse: () => ('USD', 'US Dollar', '\$', '💵'),
     );
     return '${match.$4} ${match.$2} (${match.$3})';
+  }
+
+  void _showThemePicker(BuildContext context, WidgetRef ref, AppThemeMode currentMode) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    showModalBottomSheet(
+      context: context,
+      useRootNavigator: true,
+      backgroundColor: isDark ? AppColors.darkSurface : AppColors.lightSurface,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (ctx) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white24 : Colors.black12,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  'Choose App Theme',
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Select your preferred color appearance',
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: isDark
+                        ? AppColors.darkTextSecondary
+                        : AppColors.lightTextSecondary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                ...AppThemeMode.values.map((mode) {
+                  final isSelected = currentMode == mode;
+                  final title = switch (mode) {
+                    AppThemeMode.system => 'System Default',
+                    AppThemeMode.light => 'Light Theme',
+                    AppThemeMode.dark => 'Dark Theme',
+                  };
+                  final subtitle = switch (mode) {
+                    AppThemeMode.system =>
+                      'Automatically adapt to device settings',
+                    AppThemeMode.light => 'Bright and clean user interface',
+                    AppThemeMode.dark => 'Sleek dark mode, easy on the eyes',
+                  };
+                  final icon = switch (mode) {
+                    AppThemeMode.system => Icons.brightness_auto_rounded,
+                    AppThemeMode.light => Icons.light_mode_rounded,
+                    AppThemeMode.dark => Icons.dark_mode_rounded,
+                  };
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 10.0),
+                    child: InkWell(
+                      onTap: () async {
+                        HapticFeedback.selectionClick();
+                        Navigator.pop(ctx);
+                        await ref
+                            .read(settingsRepositoryProvider)
+                            .updateTheme(mode);
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? (isDark
+                                  ? AppColors.teal.withValues(alpha: 0.12)
+                                  : AppColors.coral.withValues(alpha: 0.08))
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: isSelected
+                                ? (isDark ? AppColors.teal : AppColors.coral)
+                                : (isDark
+                                    ? AppColors.darkDivider
+                                    : AppColors.lightDivider),
+                            width: isSelected ? 1.5 : 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: isSelected
+                                    ? (isDark
+                                        ? AppColors.teal
+                                            .withValues(alpha: 0.2)
+                                        : AppColors.coral
+                                            .withValues(alpha: 0.15))
+                                    : (isDark
+                                        ? Colors.white.withValues(alpha: 0.05)
+                                        : Colors.black.withValues(alpha: 0.04)),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                icon,
+                                color: isSelected
+                                    ? (isDark ? AppColors.teal : AppColors.coral)
+                                    : (isDark
+                                        ? Colors.white70
+                                        : Colors.black54),
+                                size: 22,
+                              ),
+                            ),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    title,
+                                    style: TextStyle(
+                                      fontWeight: isSelected
+                                          ? FontWeight.bold
+                                          : FontWeight.w600,
+                                      fontSize: 15,
+                                      color: isSelected
+                                          ? (isDark
+                                              ? AppColors.teal
+                                              : AppColors.coral)
+                                          : (isDark
+                                              ? Colors.white
+                                              : Colors.black87),
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    subtitle,
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: isDark
+                                          ? AppColors.darkTextSecondary
+                                          : AppColors.lightTextSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            if (isSelected)
+                              Icon(
+                                Icons.check_circle_rounded,
+                                color:
+                                    isDark ? AppColors.teal : AppColors.coral,
+                                size: 22,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }),
+                const SizedBox(height: 8),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   void _showCurrencyPicker(BuildContext context, WidgetRef ref, String currentCode) {

@@ -222,6 +222,112 @@ abstract final class DefaultCategories {
       'isDefault': true,
     },
 
+    // ── Education ──────────────────────────────────────────────────
+    {
+      'uuid': 'cat_education',
+      'name': 'Education',
+      'iconKey': 'school',
+      'colorToken': 'sky',
+      'parentId': null,
+      'isDefault': true,
+    },
+    {
+      'uuid': 'cat_education_tuition',
+      'name': 'Tuition & Fees',
+      'iconKey': 'school',
+      'colorToken': 'sky',
+      'parentId': 'cat_education',
+      'isDefault': true,
+    },
+    {
+      'uuid': 'cat_education_books',
+      'name': 'Books & Stationery',
+      'iconKey': 'book',
+      'colorToken': 'sky',
+      'parentId': 'cat_education',
+      'isDefault': true,
+    },
+
+    // ── Personal Care & Beauty ─────────────────────────────────────
+    {
+      'uuid': 'cat_beauty',
+      'name': 'Personal Care',
+      'iconKey': 'spa',
+      'colorToken': 'rose',
+      'parentId': null,
+      'isDefault': true,
+    },
+    {
+      'uuid': 'cat_beauty_salon',
+      'name': 'Salon & Spa',
+      'iconKey': 'spa',
+      'colorToken': 'rose',
+      'parentId': 'cat_beauty',
+      'isDefault': true,
+    },
+
+    // ── Family & Kids ──────────────────────────────────────────────
+    {
+      'uuid': 'cat_family',
+      'name': 'Family & Kids',
+      'iconKey': 'family',
+      'colorToken': 'teal',
+      'parentId': null,
+      'isDefault': true,
+    },
+    {
+      'uuid': 'cat_family_kids',
+      'name': 'Baby & Kids',
+      'iconKey': 'family',
+      'colorToken': 'teal',
+      'parentId': 'cat_family',
+      'isDefault': true,
+    },
+    {
+      'uuid': 'cat_pets',
+      'name': 'Pets & Animal Care',
+      'iconKey': 'pets',
+      'colorToken': 'amber',
+      'parentId': 'cat_family',
+      'isDefault': true,
+    },
+
+    // ── Savings & Debt ─────────────────────────────────────────────
+    {
+      'uuid': 'cat_savings',
+      'name': 'Savings & Debt',
+      'iconKey': 'savings',
+      'colorToken': 'teal',
+      'parentId': null,
+      'isDefault': true,
+    },
+    {
+      'uuid': 'cat_savings_deposit',
+      'name': 'Savings Deposit',
+      'iconKey': 'savings',
+      'colorToken': 'teal',
+      'parentId': 'cat_savings',
+      'isDefault': true,
+    },
+    {
+      'uuid': 'cat_savings_loan',
+      'name': 'Loan & EMI',
+      'iconKey': 'credit_card',
+      'colorToken': 'violet',
+      'parentId': 'cat_savings',
+      'isDefault': true,
+    },
+
+    // ── Maintenance ────────────────────────────────────────────────
+    {
+      'uuid': 'cat_maintenance',
+      'name': 'Maintenance & Repairs',
+      'iconKey': 'build',
+      'colorToken': 'stone',
+      'parentId': null,
+      'isDefault': true,
+    },
+
     // ── Income ─────────────────────────────────────────────────────
     {
       'uuid': 'cat_income',
@@ -288,10 +394,34 @@ abstract final class DefaultCategories {
       'isDefault': true,
     },
     {
+      'uuid': 'cat_income_allowance',
+      'name': 'Allowance / Pocket',
+      'iconKey': 'family',
+      'colorToken': 'rose',
+      'parentId': 'cat_income',
+      'isDefault': true,
+    },
+    {
       'uuid': 'cat_income_side_hustle',
       'name': 'Side Hustle',
       'iconKey': 'zap',
       'colorToken': 'violet',
+      'parentId': 'cat_income',
+      'isDefault': true,
+    },
+    {
+      'uuid': 'cat_income_crypto',
+      'name': 'Crypto & Trading',
+      'iconKey': 'crypto',
+      'colorToken': 'amber',
+      'parentId': 'cat_income',
+      'isDefault': true,
+    },
+    {
+      'uuid': 'cat_income_refund',
+      'name': 'Refunds & Cashback',
+      'iconKey': 'sync',
+      'colorToken': 'sky',
       'parentId': 'cat_income',
       'isDefault': true,
     },
@@ -314,16 +444,8 @@ abstract final class DefaultCategories {
       'isDefault': true,
     },
     {
-      'uuid': 'cat_other_education',
-      'name': 'Education',
-      'iconKey': 'book',
-      'colorToken': 'sky',
-      'parentId': 'cat_other',
-      'isDefault': true,
-    },
-    {
       'uuid': 'cat_other_gifts',
-      'name': 'Gifts',
+      'name': 'Gifts & Donations',
       'iconKey': 'gift',
       'colorToken': 'rose',
       'parentId': 'cat_other',

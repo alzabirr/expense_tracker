@@ -594,24 +594,40 @@ class _TransactionTile extends StatelessWidget {
                     ),
                   const SizedBox(width: AppSpacing.md),
                   Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          expense.title,
-                          style: theme.textTheme.titleMedium,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        Text(
-                          '${cat?.name ?? 'Unknown'} • ${expense.isExpense ? 'Expense' : 'Income'}',
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: isDark
-                                ? AppColors.darkTextSecondary
-                                : AppColors.lightTextSecondary,
-                          ),
-                        ),
-                      ],
+                    child: Builder(
+                      builder: (context) {
+                        final String catName = cat?.name ?? (expense.isExpense ? 'Expense' : 'Income');
+                        final bool isTitleSame = expense.title.trim().toLowerCase() == catName.trim().toLowerCase();
+
+                        String subtitleText;
+                        if (!isTitleSame) {
+                          subtitleText = '$catName • ${expense.isExpense ? 'Expense' : 'Income'}';
+                        } else if (expense.merchant != null && expense.merchant!.trim().isNotEmpty) {
+                          subtitleText = '${expense.merchant!.trim()} • ${expense.isExpense ? 'Expense' : 'Income'}';
+                        } else {
+                          subtitleText = AppDateUtils.formatTime(expense.date);
+                        }
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              expense.title,
+                              style: theme.textTheme.titleMedium,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            Text(
+                              subtitleText,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isDark
+                                    ? AppColors.darkTextSecondary
+                                    : AppColors.lightTextSecondary,
+                              ),
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                   AmountLabel(
@@ -672,40 +688,46 @@ class _TransactionTile extends StatelessWidget {
 const _allComprehensiveCategories = [
   // Expense
   Category(
-    id: 'cat_food',
-    name: 'Food & Dining',
-    iconKey: 'utensils',
-    colorToken: 'coral',
-  ),
-  Category(
     id: 'cat_food_grocery',
     name: 'Groceries',
     iconKey: 'shopping_basket',
     colorToken: 'amber',
   ),
   Category(
+    id: 'cat_food_restaurant',
+    name: 'Restaurant',
+    iconKey: 'utensils',
+    colorToken: 'coral',
+  ),
+  Category(
     id: 'cat_food_coffee',
-    name: 'Coffee & Snacks',
+    name: 'Coffee',
     iconKey: 'coffee',
     colorToken: 'amber',
   ),
   Category(
-    id: 'cat_transport',
-    name: 'Transport',
-    iconKey: 'car',
-    colorToken: 'violet',
+    id: 'cat_food_snacks',
+    name: 'Snacks',
+    iconKey: 'cookie',
+    colorToken: 'coral',
   ),
   Category(
     id: 'cat_transport_fuel',
-    name: 'Fuel / Gas',
+    name: 'Fuel',
     iconKey: 'fuel',
     colorToken: 'violet',
   ),
   Category(
-    id: 'cat_shopping',
-    name: 'Shopping',
-    iconKey: 'shopping_bag',
-    colorToken: 'pink',
+    id: 'cat_transport_taxi',
+    name: 'Taxi',
+    iconKey: 'taxi',
+    colorToken: 'violet',
+  ),
+  Category(
+    id: 'cat_transport_transit',
+    name: 'Transit',
+    iconKey: 'bus',
+    colorToken: 'sky',
   ),
   Category(
     id: 'cat_shopping_clothes',
@@ -715,68 +737,80 @@ const _allComprehensiveCategories = [
   ),
   Category(
     id: 'cat_shopping_electronics',
-    name: 'Electronics',
+    name: 'Gadgets',
     iconKey: 'laptop',
     colorToken: 'slate',
   ),
   Category(
-    id: 'cat_bills',
-    name: 'Bills & Utilities',
-    iconKey: 'receipt',
-    colorToken: 'slate',
+    id: 'cat_shopping_accessories',
+    name: 'Accessories',
+    iconKey: 'watch',
+    colorToken: 'rose',
   ),
   Category(
     id: 'cat_bills_rent',
-    name: 'Rent & Housing',
+    name: 'Rent',
     iconKey: 'home',
     colorToken: 'indigo',
   ),
   Category(
-    id: 'cat_health',
-    name: 'Health & Medical',
-    iconKey: 'heart',
+    id: 'cat_bills_electricity',
+    name: 'Utilities',
+    iconKey: 'zap',
+    colorToken: 'amber',
+  ),
+  Category(
+    id: 'cat_bills_internet',
+    name: 'Internet',
+    iconKey: 'wifi',
+    colorToken: 'sky',
+  ),
+  Category(
+    id: 'cat_bills_subscription',
+    name: 'Subscriptions',
+    iconKey: 'repeat',
+    colorToken: 'indigo',
+  ),
+  Category(
+    id: 'cat_health_medicine',
+    name: 'Medicine',
+    iconKey: 'pill',
+    colorToken: 'red',
+  ),
+  Category(
+    id: 'cat_health_doctor',
+    name: 'Doctor',
+    iconKey: 'stethoscope',
     colorToken: 'red',
   ),
   Category(
     id: 'cat_health_fitness',
-    name: 'Fitness & Gym',
+    name: 'Fitness',
     iconKey: 'dumbbell',
     colorToken: 'lime',
   ),
   Category(
-    id: 'cat_entertainment',
-    name: 'Entertainment',
-    iconKey: 'film',
-    colorToken: 'teal',
-  ),
-  Category(
-    id: 'cat_entertainment_travel',
-    name: 'Travel & Vacation',
-    iconKey: 'plane',
-    colorToken: 'sky',
-  ),
-  Category(
-    id: 'cat_other_education',
+    id: 'cat_education_tuition',
     name: 'Education',
     iconKey: 'school',
     colorToken: 'sky',
   ),
   Category(
-    id: 'cat_beauty',
-    name: 'Personal Care',
+    id: 'cat_education_books',
+    name: 'Books',
+    iconKey: 'book',
+    colorToken: 'sky',
+  ),
+  Category(
+    id: 'cat_beauty_salon',
+    name: 'Salon',
     iconKey: 'spa',
     colorToken: 'rose',
   ),
   Category(
-    id: 'cat_family',
-    name: 'Family & Kids',
+    id: 'cat_family_kids',
+    name: 'Kids',
     iconKey: 'family',
-    colorToken: 'teal',
-  ),
-  Category(
-    id: 'cat_savings',
-    name: 'Savings & Invest',
-    iconKey: 'savings',
     colorToken: 'teal',
   ),
   Category(
@@ -786,87 +820,183 @@ const _allComprehensiveCategories = [
     colorToken: 'amber',
   ),
   Category(
+    id: 'cat_savings_deposit',
+    name: 'Savings',
+    iconKey: 'savings',
+    colorToken: 'teal',
+  ),
+  Category(
+    id: 'cat_savings_loan',
+    name: 'Loan',
+    iconKey: 'credit_card',
+    colorToken: 'violet',
+  ),
+  Category(
+    id: 'cat_maintenance',
+    name: 'Repairs',
+    iconKey: 'build',
+    colorToken: 'stone',
+  ),
+  Category(
     id: 'cat_other_gifts',
-    name: 'Gifts & Donations',
+    name: 'Gifts',
     iconKey: 'gift',
     colorToken: 'rose',
   ),
   Category(
+    id: 'cat_entertainment_movies',
+    name: 'Movies',
+    iconKey: 'film',
+    colorToken: 'teal',
+  ),
+  Category(
+    id: 'cat_entertainment_games',
+    name: 'Gaming',
+    iconKey: 'gamepad',
+    colorToken: 'indigo',
+  ),
+  Category(
+    id: 'cat_entertainment_travel',
+    name: 'Travel',
+    iconKey: 'plane',
+    colorToken: 'sky',
+  ),
+  Category(
     id: 'cat_other_misc',
-    name: 'Miscellaneous',
+    name: 'Other',
     iconKey: 'package',
     colorToken: 'stone',
   ),
   // Income
   Category(
     id: 'cat_income_salary',
-    name: 'Salary / Job',
+    name: 'Salary',
     iconKey: 'banknote',
     colorToken: 'teal',
   ),
   Category(
     id: 'cat_income_freelance',
-    name: 'Freelance / Projects',
+    name: 'Freelance',
     iconKey: 'briefcase',
     colorToken: 'lime',
   ),
   Category(
     id: 'cat_income_business',
-    name: 'Business / Sales',
+    name: 'Business',
     iconKey: 'landmark',
     colorToken: 'amber',
   ),
   Category(
     id: 'cat_income_investment',
-    name: 'Investments & Stocks',
+    name: 'Investments',
     iconKey: 'chart_line',
     colorToken: 'indigo',
   ),
   Category(
     id: 'cat_income_bonus',
-    name: 'Bonus & Commission',
+    name: 'Bonus',
     iconKey: 'trending_up',
     colorToken: 'teal',
   ),
   Category(
+    id: 'cat_income_commission',
+    name: 'Commission',
+    iconKey: 'receipt',
+    colorToken: 'violet',
+  ),
+  Category(
     id: 'cat_income_rental',
-    name: 'Rental Income',
+    name: 'Rental',
     iconKey: 'home',
     colorToken: 'sky',
   ),
   Category(
+    id: 'cat_income_dividends',
+    name: 'Dividends',
+    iconKey: 'savings',
+    colorToken: 'teal',
+  ),
+  Category(
+    id: 'cat_income_interest',
+    name: 'Interest',
+    iconKey: 'landmark',
+    colorToken: 'sky',
+  ),
+  Category(
     id: 'cat_income_side_hustle',
-    name: 'Side Hustle',
+    name: 'Hustle',
     iconKey: 'zap',
     colorToken: 'violet',
   ),
   Category(
     id: 'cat_income_crypto',
-    name: 'Crypto / Trading',
+    name: 'Crypto',
     iconKey: 'crypto',
     colorToken: 'amber',
   ),
   Category(
+    id: 'cat_income_royalty',
+    name: 'Royalty',
+    iconKey: 'package',
+    colorToken: 'amber',
+  ),
+  Category(
+    id: 'cat_income_cashback',
+    name: 'Cashback',
+    iconKey: 'sync',
+    colorToken: 'sky',
+  ),
+  Category(
+    id: 'cat_income_lottery',
+    name: 'Lottery',
+    iconKey: 'card_giftcard',
+    colorToken: 'rose',
+  ),
+  Category(
+    id: 'cat_income_prize',
+    name: 'Prize',
+    iconKey: 'card_giftcard',
+    colorToken: 'amber',
+  ),
+  Category(
     id: 'cat_income_gift',
-    name: 'Gifts & Grants',
+    name: 'Gifts',
     iconKey: 'gift',
     colorToken: 'pink',
   ),
   Category(
+    id: 'cat_income_grants',
+    name: 'Grants',
+    iconKey: 'school',
+    colorToken: 'sky',
+  ),
+  Category(
     id: 'cat_income_allowance',
-    name: 'Allowance / Pocket',
+    name: 'Allowance',
     iconKey: 'family',
     colorToken: 'rose',
   ),
   Category(
     id: 'cat_income_refund',
-    name: 'Refunds & Cashback',
+    name: 'Refunds',
     iconKey: 'sync',
     colorToken: 'sky',
   ),
   Category(
+    id: 'cat_income_tips',
+    name: 'Tips',
+    iconKey: 'banknote',
+    colorToken: 'teal',
+  ),
+  Category(
+    id: 'cat_income_bribe',
+    name: 'Bribe',
+    iconKey: 'package',
+    colorToken: 'stone',
+  ),
+  Category(
     id: 'cat_income_other',
-    name: 'Other Income',
+    name: 'Other',
     iconKey: 'wallet',
     colorToken: 'teal',
   ),

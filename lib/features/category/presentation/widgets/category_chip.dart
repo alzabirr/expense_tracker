@@ -68,6 +68,11 @@ class _CategoryChipState extends State<CategoryChip>
     final textColor =
         widget.isSelected ? color : (isDark ? AppColors.darkTextPrimary : AppColors.lightTextPrimary);
 
+    final bool isBribe = widget.category.iconKey == 'bribe' ||
+        widget.category.iconKey == 'shh' ||
+        widget.category.iconKey == '🤫' ||
+        widget.category.name.toLowerCase() == 'bribe';
+
     return ScaleTransition(
       scale: _scale,
       child: GestureDetector(
@@ -89,7 +94,10 @@ class _CategoryChipState extends State<CategoryChip>
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 14, color: color),
+              if (isBribe)
+                const Text('🤫', style: TextStyle(fontSize: 14))
+              else
+                Icon(icon, size: 14, color: color),
               const SizedBox(width: 5),
               Text(
                 widget.category.name,
@@ -123,15 +131,22 @@ class CategoryAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final color = AppColors.fromToken(category.colorToken);
     final icon = AppIcons.get(category.iconKey);
+    final bool isBribe = category.iconKey == 'bribe' ||
+        category.iconKey == 'shh' ||
+        category.iconKey == '🤫' ||
+        category.name.toLowerCase() == 'bribe';
 
     return Container(
       width: size,
       height: size,
+      alignment: Alignment.center,
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.15),
         borderRadius: AppRadii.mdRadius,
       ),
-      child: Icon(icon, color: color, size: size * 0.45),
+      child: isBribe
+          ? Text('🤫', style: TextStyle(fontSize: size * 0.45))
+          : Icon(icon, color: color, size: size * 0.45),
     );
   }
 }

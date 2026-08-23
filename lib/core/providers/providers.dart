@@ -69,7 +69,9 @@ final budgetRepositoryProvider = Provider<BudgetRepository>((ref) {
 });
 
 final settingsRepositoryProvider = Provider<SettingsRepository>((ref) {
-  return SettingsRepositoryImpl(ref.watch(isarProvider));
+  final isar = ref.watch(isarProvider);
+  final syncService = ref.watch(supabaseSyncServiceProvider);
+  return SettingsRepositoryImpl(isar, syncService);
 });
 
 // ── Settings Providers ───────────────────────────────────────────────────────
@@ -108,9 +110,17 @@ final allExpensesStreamProvider = StreamProvider<List<Expense>>((ref) {
 });
 
 final currentMonthExpensesProvider = StreamProvider<List<Expense>>((ref) {
-  final start = AppDateUtils.startOfMonth;
-  final end = AppDateUtils.endOfMonth;
-  return ref.watch(expenseRepositoryProvider).watchByDateRange(start, end);
+  final allAsync = ref.watch(allExpensesStreamProvider);
+  return allAsync.when(
+    data: (all) {
+      final now = DateTime.now();
+      return Stream.value(
+        all.where((e) => e.date.year == now.year && e.date.month == now.month).toList(),
+      );
+    },
+    loading: () => const Stream.empty(),
+    error: (err, st) => Stream.error(err, st),
+  );
 });
 
 // ── Budget Providers ─────────────────────────────────────────────────────────
@@ -149,16 +159,8 @@ class DashboardSummary {
 }
 
 final dashboardSummaryProvider = Provider<DashboardSummary>((ref) {
-  final expenses = ref.watch(currentMonthExpensesProvider).valueOrNull ?? [];
-  final budget = ref.watch(overallBudgetProvider).valueOrNull;
   final all = ref.watch(allExpensesStreamProvider).valueOrNull ?? [];
-
-  final income = expenses
-      .where((e) => e.isIncome)
-      .fold(0.0, (sum, e) => sum + e.amount);
-  final spent = expenses
-      .where((e) => e.isExpense)
-      .fold(0.0, (sum, e) => sum + e.amount);
+  final budget = ref.watch(overallBudgetProvider).valueOrNull;
 
   final allIncome = all
       .where((e) => e.isIncome)
@@ -169,11 +171,10 @@ final dashboardSummaryProvider = Provider<DashboardSummary>((ref) {
 
   return DashboardSummary(
     totalBalance: allIncome - allSpent,
-    totalIncome: income,
-    totalExpense: spent,
+    totalIncome: allIncome,
+    totalExpense: allSpent,
     budgetAmount: budget?.amount ?? 0,
-    budgetSpent: spent,
-    recentTransactions:
-        all.take(AppConstants.recentTransactionsCount).toList(),
+    budgetSpent: allSpent,
+    recentTransactions: all,
   );
 });

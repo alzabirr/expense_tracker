@@ -140,27 +140,26 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   // App Logo & Header
                   Center(
                     child: Container(
-                      width: 64,
-                      height: 64,
+                      width: 108,
+                      height: 108,
                       decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [AppColors.coral, AppColors.teal],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                        ),
-                        borderRadius: BorderRadius.circular(20),
+                        borderRadius: BorderRadius.circular(26),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.coral.withValues(alpha: 0.3),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
+                            color: isDark
+                                ? Colors.black.withValues(alpha: 0.4)
+                                : AppColors.coral.withValues(alpha: 0.25),
+                            blurRadius: 24,
+                            offset: const Offset(0, 10),
                           ),
                         ],
                       ),
-                      child: const Icon(
-                        Icons.account_balance_wallet_rounded,
-                        color: Colors.white,
-                        size: 32,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(26),
+                        child: Image.asset(
+                          'assets/images/spe.png',
+                          fit: BoxFit.contain,
+                        ),
                       ),
                     ),
                   ),

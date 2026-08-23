@@ -26,7 +26,7 @@ void main() async {
     final String initialLocation;
     if (currentUser == null) {
       initialLocation =
-          settings.isFirstLaunch ? RouteNames.onboarding : RouteNames.login;
+          settings.isFirstLaunch ? RouteNames.onboarding : RouteNames.signup;
     } else {
       initialLocation = RouteNames.dashboard;
     }
@@ -75,13 +75,38 @@ void main() async {
   }
 }
 
-class MomentumApp extends ConsumerWidget {
+class MomentumApp extends ConsumerStatefulWidget {
   const MomentumApp({super.key, required this.router});
 
   final GoRouter router;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MomentumApp> createState() => _MomentumAppState();
+}
+
+class _MomentumAppState extends ConsumerState<MomentumApp> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      // Auto-sync pending offline transactions when user returns to the app
+      ref.read(authControllerProvider.notifier).syncData();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final themeMode = ref.watch(themeModeProvider);
 
     // Map our domain ThemeMode to Flutter's ThemeMode
@@ -97,7 +122,7 @@ class MomentumApp extends ConsumerWidget {
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),
       themeMode: flutterThemeMode,
-      routerConfig: router,
+      routerConfig: widget.router,
     );
   }
 }

@@ -1,12 +1,14 @@
 import 'package:isar/isar.dart';
+import 'package:spendra/core/sync/supabase_sync_service.dart';
 import 'package:spendra/features/settings/data/models/settings_isar_model.dart';
 import 'package:spendra/features/settings/domain/entities/app_settings.dart';
 import 'package:spendra/features/settings/domain/repositories/settings_repository.dart';
 
 class SettingsRepositoryImpl implements SettingsRepository {
-  SettingsRepositoryImpl(this._isar);
+  SettingsRepositoryImpl(this._isar, [this._syncService]);
 
   final Isar _isar;
+  final SupabaseSyncService? _syncService;
 
   AppSettings _toEntity(SettingsIsarModel m) => AppSettings(
         themeMode: AppThemeMode.values[m.themeModeIndex],
@@ -55,6 +57,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
     await _isar.writeTxn(() async {
       await _isar.settingsIsarModels.put(model);
     });
+    _syncService?.syncSettings(settings);
   }
 
   @override
@@ -64,6 +67,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
     await _isar.writeTxn(() async {
       await _isar.settingsIsarModels.put(current);
     });
+    _syncService?.syncSettings(_toEntity(current));
   }
 
   @override
@@ -75,6 +79,7 @@ class SettingsRepositoryImpl implements SettingsRepository {
     await _isar.writeTxn(() async {
       await _isar.settingsIsarModels.put(current);
     });
+    _syncService?.syncSettings(_toEntity(current));
   }
 
   @override

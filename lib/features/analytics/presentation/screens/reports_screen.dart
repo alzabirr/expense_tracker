@@ -9,7 +9,9 @@ import 'package:spendra/core/utils/currency_formatter.dart';
 import 'package:spendra/core/utils/date_utils.dart';
 import 'package:spendra/core/widgets/empty_state.dart';
 import 'package:spendra/features/category/domain/entities/category.dart';
+import 'package:spendra/features/category/presentation/widgets/category_chip.dart';
 import 'package:spendra/features/expense/domain/entities/expense.dart';
+import 'package:spendra/features/expense/presentation/screens/add_edit_expense_screen.dart';
 
 enum ReportPeriod { month, quarter, year }
 
@@ -377,16 +379,7 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
                         ),
                         child: Row(
                           children: [
-                            Container(
-                              width: 44,
-                              height: 44,
-                              decoration: BoxDecoration(
-                                color: item.color.withValues(alpha: 0.15),
-                                borderRadius: AppRadii.mdRadius,
-                              ),
-                              child: Icon(Icons.category,
-                                  color: item.color, size: 20),
-                            ),
+                            CategoryAvatar(category: item.category),
                             const SizedBox(width: AppSpacing.md),
                             Expanded(
                               child: Column(
@@ -465,6 +458,8 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
   ) {
     if (expenses.isEmpty) return [];
 
+    final allCategories = [...defaultExpenseCategories, ...defaultIncomeCategories, ...categories];
+
     final totals = <String, double>{};
     for (final e in expenses) {
       totals[e.categoryId] = (totals[e.categoryId] ?? 0) + e.amount;
@@ -473,21 +468,27 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
     if (totalSpent == 0) return [];
 
     final result = totals.entries.map((entry) {
-      final cat = categories
+      final cat = allCategories
           .where((c) => c.id == entry.key)
-          .firstOrNull;
+          .firstOrNull ??
+          Category(
+            id: entry.key,
+            name: entry.key.replaceFirst('cat_', '').replaceAll('_', ' ').toUpperCase(),
+            iconKey: 'package',
+            colorToken: 'coral',
+          );
+
       return _CategoryDistItem(
-        label: cat?.name ?? 'Other',
+        category: cat,
+        label: cat.name,
         amount: entry.value,
         percentage: entry.value / totalSpent,
-        color: cat != null
-            ? AppColors.fromToken(cat.colorToken)
-            : AppColors.darkTextSecondary,
+        color: AppColors.fromToken(cat.colorToken),
       );
     }).toList();
 
     result.sort((a, b) => b.amount.compareTo(a.amount));
-    return result.take(6).toList();
+    return result.take(10).toList();
   }
 
   List<_TrendItem> _buildTrend(List<Expense> all) {
@@ -510,11 +511,13 @@ class _ReportsScreenState extends ConsumerState<ReportsScreen> {
 
 class _CategoryDistItem {
   const _CategoryDistItem({
+    required this.category,
     required this.label,
     required this.amount,
     required this.percentage,
     required this.color,
   });
+  final Category category;
   final String label;
   final double amount;
   final double percentage;

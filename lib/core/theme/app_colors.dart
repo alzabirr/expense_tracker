@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 abstract final class AppColors {
   // ── Brand ──────────────────────────────────────────────────────────────
   static const Color coral = Color(0xFFFF6B5E); // Expense / primary CTA
-  static const Color teal = Color(0xFF3DD9C4);  // Income / secondary
+  static const Color teal = Color(0xFF3DD9C4); // Income / secondary
 
   // ── Dark theme surface stack ────────────────────────────────────────────
   static const Color darkBackground = Color(0xFF191919);
@@ -46,10 +46,8 @@ abstract final class AppColors {
     'stone': Color(0xFF78716C),
   };
 
-  static Color fromToken(String token) =>
-      categoryPalette[token] ?? coral;
+  static Color fromToken(String token) => categoryPalette[token] ?? coral;
 
   /// Returns a very light tint of [color] for chip backgrounds.
-  static Color chipBackground(Color color) =>
-      color.withValues(alpha: 0.15);
+  static Color chipBackground(Color color) => color.withValues(alpha: 0.15);
 }

@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:spendra/core/database/isar_provider.dart';
 import 'package:spendra/core/providers/providers.dart';
@@ -46,10 +49,26 @@ class AuthController extends StateNotifier<AppAuthState> {
         syncData();
       }
     });
+
+    // Auto-sync whenever internet connectivity is restored
+    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
+      final isOnline = results.any((r) => r != ConnectivityResult.none);
+      if (isOnline && state.isAuthenticated) {
+        debugPrint('Network restored: triggering automatic cloud sync...');
+        syncData();
+      }
+    });
   }
 
   final AuthRepository _authRepo;
   final Ref _ref;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
+
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel();
+    super.dispose();
+  }
 
   Future<bool> signIn({
     required String email,
