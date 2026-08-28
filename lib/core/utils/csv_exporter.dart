@@ -31,13 +31,13 @@ abstract final class CsvExporter {
     }
 
     final tempDir = await getTemporaryDirectory();
-    final file = File('${tempDir.path}/momentum_export_${DateTime.now().millisecondsSinceEpoch}.csv');
+    final file = File('${tempDir.path}/owly_export_${DateTime.now().millisecondsSinceEpoch}.csv');
     await file.writeAsString(buffer.toString());
 
     await Share.shareXFiles(
       [XFile(file.path)],
-      subject: 'Momentum Financial Data Export',
-      text: 'Here is your exported financial transaction data from Momentum.',
+      subject: 'Owly Financial Data Export',
+      text: 'Here is your exported financial transaction data from Owly.',
     );
   }
 

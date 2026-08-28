@@ -1,6 +1,6 @@
 /// App-wide constants.
 abstract final class AppConstants {
-  static const String appName = 'Momentum';
+  static const String appName = 'Owly';
   static const String appVersion = '1.0.0';
 
   // Isar

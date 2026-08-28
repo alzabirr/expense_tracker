@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Design token — all colors in the Momentum design system.
+/// Design token — all colors in the Owly design system.
 /// Never use hex literals in widget code; always reference these tokens.
 abstract final class AppColors {
   // ── Brand ──────────────────────────────────────────────────────────────

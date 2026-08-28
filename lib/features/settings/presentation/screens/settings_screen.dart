@@ -133,7 +133,7 @@ class SettingsScreen extends ConsumerWidget {
                                             children: [
                                               Flexible(
                                                 child: Text(
-                                                  user.name ?? 'Spendra User',
+                                                  user.name ?? 'Owly User',
                                                   style: theme
                                                       .textTheme.titleMedium
                                                       ?.copyWith(

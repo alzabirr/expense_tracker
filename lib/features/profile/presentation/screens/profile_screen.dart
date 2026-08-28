@@ -208,7 +208,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
 
     final displayName = (user?.name?.isNotEmpty == true)
         ? user!.name!
-        : (isGuest ? 'Guest User' : 'Spendra User');
+        : (isGuest ? 'Guest User' : 'Owly User');
     final email = isGuest ? 'Offline Mode (Local Storage)' : user.email;
     final initial =
         (displayName.isNotEmpty ? displayName[0] : 'U').toUpperCase();
@@ -469,7 +469,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                       icon: const Icon(Icons.logout_rounded,
                           color: AppColors.danger, size: 20),
                       label: const Text(
-                        'Log Out of Spendra',
+                        'Log Out of Owly',
                         style: TextStyle(
                           color: AppColors.danger,
                           fontWeight: FontWeight.bold,

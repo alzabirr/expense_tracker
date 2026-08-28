@@ -3,7 +3,7 @@ import 'package:spendra/core/theme/app_colors.dart';
 import 'package:spendra/core/theme/app_radii.dart';
 import 'package:spendra/core/theme/app_spacing.dart';
 
-/// Styled text input field consistent with the Momentum design system.
+/// Styled text input field consistent with the Owly design system.
 class AppTextField extends StatelessWidget {
   const AppTextField({
     super.key,

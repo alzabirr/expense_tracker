@@ -38,7 +38,7 @@ void main() async {
           // Inject the initialised Isar instance into all providers.
           isarProvider.overrideWithValue(isar),
         ],
-        child: MomentumApp(router: router),
+        child: OwlyApp(router: router),
       ),
     );
   } catch (e, st) {
@@ -56,7 +56,7 @@ void main() async {
                   const Icon(Icons.error_outline, size: 48, color: Color(0xFFFF6B5E)),
                   const SizedBox(height: 16),
                   const Text(
-                    'Unable to start Momentum',
+                    'Unable to start Owly',
                     style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
@@ -75,16 +75,16 @@ void main() async {
   }
 }
 
-class MomentumApp extends ConsumerStatefulWidget {
-  const MomentumApp({super.key, required this.router});
+class OwlyApp extends ConsumerStatefulWidget {
+  const OwlyApp({super.key, required this.router});
 
   final GoRouter router;
 
   @override
-  ConsumerState<MomentumApp> createState() => _MomentumAppState();
+  ConsumerState<OwlyApp> createState() => _OwlyAppState();
 }
 
-class _MomentumAppState extends ConsumerState<MomentumApp> with WidgetsBindingObserver {
+class _OwlyAppState extends ConsumerState<OwlyApp> with WidgetsBindingObserver {
   @override
   void initState() {
     super.initState();
@@ -117,7 +117,7 @@ class _MomentumAppState extends ConsumerState<MomentumApp> with WidgetsBindingOb
     };
 
     return MaterialApp.router(
-      title: 'Momentum',
+      title: 'Owly',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.light(),
       darkTheme: AppTheme.dark(),

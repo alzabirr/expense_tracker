@@ -6,7 +6,7 @@ import 'package:spendra/core/theme/app_shadows.dart';
 
 enum AppButtonVariant { primary, secondary, danger }
 
-/// Full-width or sized pill button matching the Momentum design system.
+/// Full-width or sized pill button matching the Owly design system.
 class AppButton extends StatelessWidget {
   const AppButton({
     super.key,
